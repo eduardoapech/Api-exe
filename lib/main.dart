@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Random User Data',
+      title: 'Dados de Usuários API',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -57,7 +57,7 @@ class _UserDataPageState extends State<UserDataPage> {
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: Text('Random User Data'),
+      title: Text('Dados de Usuários API'),
     ),
     body: _isLoading
         ? Center(child: CircularProgressIndicator())
@@ -65,8 +65,12 @@ Widget build(BuildContext context) {
             itemCount: _users.length,
             itemBuilder: (context, index) {
               return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(_users[index].avatarUrl),
+                  radius: 25,
+                ),
                 title: Text(_users[index].name),
-                subtitle: Text('${_users[index].email}, ${_users[index].city}, ${_users[index].state}, ${_users[index].gender}'),
+                subtitle: Text('${_users[index].email}, ${_users[index].city}, ${_users[index].state}, ${_users[index].gender}, Age: ${_users[index].age}'),
               );
             },
           ),

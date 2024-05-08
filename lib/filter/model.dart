@@ -7,6 +7,7 @@ class FilterModel {
   final String city;
   final String state;
   final String gender;
+  final int age;  // Campo adicionado
 
   FilterModel({
     required this.id,
@@ -17,6 +18,7 @@ class FilterModel {
     required this.city,
     required this.state,
     required this.gender,
+    required this.age,  // Construtor atualizado
   });
 
   factory FilterModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class FilterModel {
       city: json['location']['city'],
       state: json['location']['state'],
       gender: json['gender'],
+      age: json['dob']['age'],  // Extração da idade do JSON
     );
   }
 }
