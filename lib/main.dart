@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dados de Usuários API',
+      title: 'Random User Data',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -27,12 +27,15 @@ class UserDataPage extends StatefulWidget {
 
 class _UserDataPageState extends State<UserDataPage> {
   List<FilterModel> _users = [];
+  List<FilterModel> _filteredUsers = [];
   bool _isLoading = false;
+  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _searchController.addListener(_onSearchChanged);
   }
 
   void _loadUserData() async {
@@ -40,9 +43,10 @@ class _UserDataPageState extends State<UserDataPage> {
       _isLoading = true;
     });
     try {
-      var users = await ApiServices().fetchUserData(10);
+      var users = await ApiServices().fetchUserData(20);
       setState(() {
         _users = users;
+        _filteredUsers = users;
       });
     } catch (e) {
       print('Error: $e');
@@ -53,25 +57,69 @@ class _UserDataPageState extends State<UserDataPage> {
     }
   }
 
- @override
+ String? _selectedGender;
+
+void _onSearchChanged() {
+  String searchQuery = _searchController.text.toLowerCase();
+  List<FilterModel> tempFilteredUsers = _users.where((user) =>
+      user.name.toLowerCase().startsWith(searchQuery)).toList();
+
+  if (_selectedGender != null && _selectedGender!.isNotEmpty) {
+    tempFilteredUsers = tempFilteredUsers.where((user) =>
+        user.gender.toLowerCase() == _selectedGender!.toLowerCase()).toList();
+  }
+
+  setState(() {
+    _filteredUsers = tempFilteredUsers;
+  });
+}
+
+
+  @override
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
       title: Text('Random User Data'),
+      bottom: PreferredSize(
+        preferredSize: Size.fromHeight(130.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Search by name...',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: _buildGenderDropdown(),
+            ),
+          ],
+        ),
+      ),
     ),
     body: _isLoading
         ? Center(child: CircularProgressIndicator())
         : ListView.builder(
-            itemCount: _users.length,
+            itemCount: _filteredUsers.length,
             itemBuilder: (context, index) {
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: NetworkImage(_users[index].avatarUrl),
+                  backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
                   radius: 25,
                 ),
-                title: Text(_users[index].name, style: TextStyle(color: _users[index].displayColor)),
-                subtitle: Text('${_users[index].email}, ${_users[index].city}, ${_users[index].state}, ${_users[index].gender}, Age: ${_users[index].age}',
-                  style: TextStyle(color: _users[index].displayColor)),
+                title: Text(_filteredUsers[index].name),
+                subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city}, ${_filteredUsers[index].state}, ${_filteredUsers[index].gender}, Age: ${_filteredUsers[index].age}'),
               );
             },
           ),
@@ -83,4 +131,22 @@ Widget build(BuildContext context) {
   );
 }
 
+  Widget _buildGenderDropdown() {
+  return DropdownButton<String>(
+    value: _selectedGender,
+    hint: Text('Select Gender'),
+    items: <String>['male', 'female'].map((String value) {
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Text(value),
+      );
+    }).toList(),
+    onChanged: (String? newValue) {
+      setState(() {
+        _selectedGender = newValue;
+        _onSearchChanged(); // Atualiza a lista filtrada com a seleção de gênero
+      });
+    },
+  );
+}
 }

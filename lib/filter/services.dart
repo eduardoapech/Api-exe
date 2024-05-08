@@ -9,14 +9,17 @@ class ApiServices {
   static const String baseUrl = 'https://randomuser.me/api/';
   Dio dio = Dio();
 
-  Future<List<FilterModel>> fetchUserData(int count) async {
+  // Adiciona parâmetros opcionais para filtro de idade e gênero
+  Future<List<FilterModel>> fetchUserData(int count, {int? minAge, int? maxAge, String? gender}) async {
     try {
       var response = await dio.get('$baseUrl', queryParameters: {'results': count});
       List<FilterModel> users = [];
       for (var user in response.data['results']) {
         FilterModel userModel = FilterModel.fromJson(user);
-        // Filtrando por idade e gênero
-        if (userModel.age >= 30 && userModel.age <= 35 && userModel.gender == "female") {
+        // Aplica o filtro se os parâmetros foram fornecidos
+        if ((minAge == null || userModel.age >= minAge) && 
+            (maxAge == null || userModel.age <= maxAge) &&
+            (gender == null || userModel.gender == gender)) {
           users.add(userModel);
         }
       }
