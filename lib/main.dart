@@ -26,12 +26,16 @@ class UserDataPage extends StatefulWidget {
 }
 
 TextEditingController _ageController = TextEditingController();
+TextEditingController _minAgeController = TextEditingController();
+TextEditingController _maxAgeController = TextEditingController();
+TextEditingController _searchController = TextEditingController();
+
 
 class _UserDataPageState extends State<UserDataPage> {
   List<FilterModel> _users = [];
   List<FilterModel> _filteredUsers = [];
   bool _isLoading = false;
-  TextEditingController _searchController = TextEditingController();
+  
 
   @override
   void initState() {
@@ -62,22 +66,34 @@ class _UserDataPageState extends State<UserDataPage> {
   String? _selectedGender;
 
   void _onSearchChanged() {
+  List<FilterModel> tempFilteredUsers = _users;
+  
+  // Filtro por nome
+  if (_searchController.text.isNotEmpty) {
     String searchQuery = _searchController.text.toLowerCase();
-    int? ageQuery = int.tryParse(_ageController.text); // Tenta converter a entrada de texto para um inteiro
-    List<FilterModel> tempFilteredUsers = _users.where((user) => user.name.toLowerCase().startsWith(searchQuery)).toList();
-
-    if (_selectedGender != null && _selectedGender!.isNotEmpty && _selectedGender != 'all') {
-      tempFilteredUsers = tempFilteredUsers.where((user) => user.gender.toLowerCase() == _selectedGender!.toLowerCase()).toList();
-    }
-
-    if (ageQuery != null) {
-      tempFilteredUsers = tempFilteredUsers.where((user) => user.age == ageQuery).toList();
-    }
-
-    setState(() {
-      _filteredUsers = tempFilteredUsers;
-    });
+    tempFilteredUsers = tempFilteredUsers.where((user) =>
+      user.name.toLowerCase().startsWith(searchQuery)).toList();
   }
+
+  // Filtro por gênero
+  if (_selectedGender != null && _selectedGender!.isNotEmpty && _selectedGender != 'all') {
+    tempFilteredUsers = tempFilteredUsers.where((user) =>
+      user.gender.toLowerCase() == _selectedGender!.toLowerCase()).toList();
+  }
+
+  // Filtro por intervalo de idade
+  int? minAge = int.tryParse(_minAgeController.text);
+  int? maxAge = int.tryParse(_maxAgeController.text);
+  if (minAge != null && maxAge != null) {
+    tempFilteredUsers = tempFilteredUsers.where((user) =>
+      user.age >= minAge && user.age <= maxAge).toList();
+  }
+
+  setState(() {
+    _filteredUsers = tempFilteredUsers;
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +101,7 @@ class _UserDataPageState extends State<UserDataPage> {
       appBar: AppBar(
         title: Text('Random User Data'),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(160.0),
+          preferredSize: Size.fromHeight(200.0), // Ajuste a altura conforme necessário
           child: Column(
             children: [
               Padding(
@@ -110,7 +126,7 @@ class _UserDataPageState extends State<UserDataPage> {
                   children: [
                     Expanded(child: _buildGenderDropdown()),
                     SizedBox(width: 8), // Espaço entre os widgets
-                    Expanded(child: _buildAgeTextField()),
+                    Expanded(child: _buildAgeRangeFields()), // Utilizando o novo método de intervalo de idades
                   ],
                 ),
               ),
@@ -120,19 +136,21 @@ class _UserDataPageState extends State<UserDataPage> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _filteredUsers.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
-                    radius: 25,
-                  ),
-                  title: Text(_filteredUsers[index].name),
-                  subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city}, ${_filteredUsers[index].state}, ${_filteredUsers[index].gender}, Age: ${_filteredUsers[index].age}'),
-                );
-              },
-            ),
+          : _filteredUsers.isEmpty
+              ? Center(child: Text('Nenhum usuário encontrado'))
+              : ListView.builder(
+                  itemCount: _filteredUsers.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
+                        radius: 25,
+                      ),
+                      title: Text(_filteredUsers[index].name),
+                      subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city}, ${_filteredUsers[index].state}, ${_filteredUsers[index].gender}, Age: ${_filteredUsers[index].age}'),
+                    );
+                  },
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: _loadUserData,
         tooltip: 'Reload Data',
@@ -160,21 +178,46 @@ class _UserDataPageState extends State<UserDataPage> {
     );
   }
 
-  Widget _buildAgeTextField() {
-    return TextField(
-      controller: _ageController,
-      decoration: InputDecoration(
-        labelText: 'Age',
-        hintText: 'Enter age...',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(25.0),
-          borderSide: BorderSide.none,
+  Widget _buildAgeRangeFields() {
+  return Row(
+    children: [
+      Expanded(
+        child: TextField(
+          controller: _minAgeController, // Você precisará definir este controlador
+          decoration: InputDecoration(
+            labelText: 'Idade Mínima',
+            hintText: 'Ex: 20',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(25.0),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          keyboardType: TextInputType.number,
+          onChanged: (value) => _onSearchChanged(),
         ),
-        filled: true,
-        fillColor: Colors.white,
       ),
-      keyboardType: TextInputType.number, // Assegura que apenas números possam ser digitados
-      onChanged: (value) => _onSearchChanged(), // Atualiza a lista quando o valor muda
-    );
-  }
+      SizedBox(width: 10),
+      Expanded(
+        child: TextField(
+          controller: _maxAgeController, // Você precisará definir este controlador
+          decoration: InputDecoration(
+            labelText: 'Idade Máxima',
+            hintText: 'Ex: 30',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(25.0),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          keyboardType: TextInputType.number,
+          onChanged: (value) => _onSearchChanged(),
+        ),
+      ),
+    ],
+  );
+}
+
 }
