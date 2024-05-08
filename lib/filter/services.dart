@@ -1,8 +1,6 @@
-import 'dart:convert';
 
 import 'package:api_dados/filter/model.dart';
 
-import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 
 class ApiServices {
