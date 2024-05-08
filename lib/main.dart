@@ -25,6 +25,8 @@ class UserDataPage extends StatefulWidget {
   _UserDataPageState createState() => _UserDataPageState();
 }
 
+TextEditingController _ageController = TextEditingController();
+
 class _UserDataPageState extends State<UserDataPage> {
   List<FilterModel> _users = [];
   List<FilterModel> _filteredUsers = [];
@@ -57,96 +59,122 @@ class _UserDataPageState extends State<UserDataPage> {
     }
   }
 
- String? _selectedGender;
+  String? _selectedGender;
 
-void _onSearchChanged() {
-  String searchQuery = _searchController.text.toLowerCase();
-  List<FilterModel> tempFilteredUsers = _users.where((user) =>
-      user.name.toLowerCase().startsWith(searchQuery)).toList();
+  void _onSearchChanged() {
+    String searchQuery = _searchController.text.toLowerCase();
+    int? ageQuery = int.tryParse(_ageController.text); // Tenta converter a entrada de texto para um inteiro
+    List<FilterModel> tempFilteredUsers = _users.where((user) => user.name.toLowerCase().startsWith(searchQuery)).toList();
 
-  if (_selectedGender != null && _selectedGender!.isNotEmpty) {
-    tempFilteredUsers = tempFilteredUsers.where((user) =>
-        user.gender.toLowerCase() == _selectedGender!.toLowerCase()).toList();
+    if (_selectedGender != null && _selectedGender!.isNotEmpty && _selectedGender != 'all') {
+      tempFilteredUsers = tempFilteredUsers.where((user) => user.gender.toLowerCase() == _selectedGender!.toLowerCase()).toList();
+    }
+
+    if (ageQuery != null) {
+      tempFilteredUsers = tempFilteredUsers.where((user) => user.age == ageQuery).toList();
+    }
+
+    setState(() {
+      _filteredUsers = tempFilteredUsers;
+    });
   }
 
-  setState(() {
-    _filteredUsers = tempFilteredUsers;
-  });
-}
-
-
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Random User Data'),
-      bottom: PreferredSize(
-        preferredSize: Size.fromHeight(130.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search by name...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25.0),
-                    borderSide: BorderSide.none,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Random User Data'),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(160.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Search by name...',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
                   ),
-                  filled: true,
-                  fillColor: Colors.white,
                 ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: _buildGenderDropdown(),
-            ),
-          ],
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildGenderDropdown()),
+                    SizedBox(width: 8), // Espaço entre os widgets
+                    Expanded(child: _buildAgeTextField()),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-    body: _isLoading
-        ? Center(child: CircularProgressIndicator())
-        : ListView.builder(
-            itemCount: _filteredUsers.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
-                  radius: 25,
-                ),
-                title: Text(_filteredUsers[index].name),
-                subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city}, ${_filteredUsers[index].state}, ${_filteredUsers[index].gender}, Age: ${_filteredUsers[index].age}'),
-              );
-            },
-          ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: _loadUserData,
-      tooltip: 'Reload Data',
-      child: Icon(Icons.refresh),
-    ),
-  );
-}
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: _filteredUsers.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
+                    radius: 25,
+                  ),
+                  title: Text(_filteredUsers[index].name),
+                  subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city}, ${_filteredUsers[index].state}, ${_filteredUsers[index].gender}, Age: ${_filteredUsers[index].age}'),
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _loadUserData,
+        tooltip: 'Reload Data',
+        child: Icon(Icons.refresh),
+      ),
+    );
+  }
 
   Widget _buildGenderDropdown() {
-  return DropdownButton<String>(
-    value: _selectedGender,
-    hint: Text('Select Gender'),
-    items: <String>['male', 'female'].map((String value) {
-      return DropdownMenuItem<String>(
-        value: value,
-        child: Text(value),
-      );
-    }).toList(),
-    onChanged: (String? newValue) {
-      setState(() {
-        _selectedGender = newValue;
-        _onSearchChanged(); // Atualiza a lista filtrada com a seleção de gênero
-      });
-    },
-  );
-}
+    return DropdownButton<String>(
+      value: _selectedGender,
+      hint: Text('Select Gender'),
+      items: <String>['all', 'male', 'female'].map((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          _selectedGender = newValue;
+          _onSearchChanged(); // Atualiza a lista filtrada com a seleção de gênero
+        });
+      },
+    );
+  }
+
+  Widget _buildAgeTextField() {
+    return TextField(
+      controller: _ageController,
+      decoration: InputDecoration(
+        labelText: 'Age',
+        hintText: 'Enter age...',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25.0),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      keyboardType: TextInputType.number, // Assegura que apenas números possam ser digitados
+      onChanged: (value) => _onSearchChanged(), // Atualiza a lista quando o valor muda
+    );
+  }
 }
