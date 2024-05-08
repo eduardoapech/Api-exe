@@ -1,21 +1,26 @@
 import 'dart:convert';
 
 import 'package:api_dados/filter/model.dart';
-import 'package:http/http.dart' as http;
 
-class ApiServices { 
-  Future <FilterModel?> myFilterList() async { 
-    Uri url = Uri.parse("https://randomuser.me/api/?results=10");
-    var response = await http.get(url);
-    try{ 
-      if (response.statusCode == 200) { 
-        return FilterModel.fromJson(jsonDecode(response.body));
-      } else { 
-        return null;
+import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+
+
+class ApiServices {
+  static const String baseUrl = 'https://randomuser.me/api/';
+  Dio dio = Dio();
+
+  Future<List<FilterModel>> fetchUserData(int count) async {
+    try {
+      var response = await dio.get('$baseUrl', queryParameters: {'results': count});
+      List<FilterModel> users = [];
+      for (var user in response.data['results']) {
+        users.add(FilterModel.fromJson(user));
       }
-    } catch (e) { 
-      print (e);
+      return users;
+    } catch (e) {
+      print(e);
+      throw Exception('Failed to load user data');
     }
-    return null;
   }
 }
