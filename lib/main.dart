@@ -40,7 +40,7 @@ class _UserDataPageState extends State<UserDataPage> {
       _isLoading = true;
     });
     try {
-      var users = await ApiServices().fetchUserData(5);
+      var users = await ApiServices().fetchUserData(10);
       setState(() {
         _users = users;
       });
@@ -57,7 +57,7 @@ class _UserDataPageState extends State<UserDataPage> {
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: Text('Dados de Usuários API'),
+      title: Text('Random User Data'),
     ),
     body: _isLoading
         ? Center(child: CircularProgressIndicator())
@@ -69,8 +69,9 @@ Widget build(BuildContext context) {
                   backgroundImage: NetworkImage(_users[index].avatarUrl),
                   radius: 25,
                 ),
-                title: Text(_users[index].name),
-                subtitle: Text('${_users[index].email}, ${_users[index].city}, ${_users[index].state}, ${_users[index].gender}, Age: ${_users[index].age}'),
+                title: Text(_users[index].name, style: TextStyle(color: _users[index].displayColor)),
+                subtitle: Text('${_users[index].email}, ${_users[index].city}, ${_users[index].state}, ${_users[index].gender}, Age: ${_users[index].age}',
+                  style: TextStyle(color: _users[index].displayColor)),
               );
             },
           ),
@@ -81,4 +82,5 @@ Widget build(BuildContext context) {
     ),
   );
 }
+
 }

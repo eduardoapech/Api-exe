@@ -5,7 +5,6 @@ import 'package:api_dados/filter/model.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 
-
 class ApiServices {
   static const String baseUrl = 'https://randomuser.me/api/';
   Dio dio = Dio();
@@ -15,7 +14,11 @@ class ApiServices {
       var response = await dio.get('$baseUrl', queryParameters: {'results': count});
       List<FilterModel> users = [];
       for (var user in response.data['results']) {
-        users.add(FilterModel.fromJson(user));
+        FilterModel userModel = FilterModel.fromJson(user);
+        // Filtrando por idade e gênero
+        if (userModel.age >= 30 && userModel.age <= 35 && userModel.gender == "female") {
+          users.add(userModel);
+        }
       }
       return users;
     } catch (e) {
