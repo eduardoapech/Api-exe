@@ -9,9 +9,21 @@ class ApiServices {
     var queryParams = {
       'results': count.toString(),
       if (gender != null) 'gender': gender,
+      
     };
 
-    var response = await dio.get(baseUrl, queryParameters: queryParams);
-    return response.data['results'].map<PersonModel>((user) => PersonModel.fromJson(user)).toList();
+    try {
+      var response = await dio.get(baseUrl, queryParameters: queryParams);
+      if (response.statusCode == 200) {
+        // Assumindo que a chave 'results' contém a lista de usuários
+        List<dynamic> usersData = response.data['results'];
+        return usersData.map<PersonModel>((user) => PersonModel.fromJson(user)).toList();
+      } else {
+        throw Exception('Failed to load user data');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+      rethrow; // Re-lança a exceção para tratamento adicional se necessário
+    }
   }
 }

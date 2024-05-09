@@ -1,4 +1,3 @@
-import 'package:api_dados/filter/nat.dart';
 import 'package:api_dados/filter/user_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
@@ -11,11 +10,9 @@ class UserDataPage extends StatefulWidget {
 }
 
 class _UserDataPageState extends State<UserDataPage> {
-  List<PersonModel> _users = [];
   List<PersonModel> _filteredUsers = [];
   bool _isLoading = false;
   String? _selectedGender;
-  String? _selectedNationality;
 
   @override
   void initState() {
@@ -26,9 +23,8 @@ class _UserDataPageState extends State<UserDataPage> {
   void _loadUserData() async {
     setState(() => _isLoading = true);
     try {
-      var users = await ApiServices().fetchUserData(50);
+      var users = await ApiServices().fetchUserData(50, gender: _selectedGender);
       setState(() {
-        _users = users;
         _filteredUsers = users;
       });
     } catch (e) {
@@ -56,16 +52,6 @@ class _UserDataPageState extends State<UserDataPage> {
                     onChanged: (newValue) {
                       setState(() {
                         _selectedGender = newValue;
-                      });
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: NationalityDropdown(
-                    selectedNationality: _selectedNationality,
-                    onChanged: (newValue) {
-                      setState(() {
-                        _selectedNationality = newValue;
                       });
                     },
                   ),
