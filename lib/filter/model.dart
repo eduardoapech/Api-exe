@@ -12,7 +12,6 @@ class PersonModel {
   final String gender;
   final int age;
   final String nat;
-  final Color displayColor; // Campo para armazenar a cor
 
   PersonModel({
     required this.id,
@@ -25,7 +24,6 @@ class PersonModel {
     required this.gender,
     required this.age,
     required this.nat,
-    required this.displayColor,
   });
 
   factory PersonModel.fromJson(Map<String, dynamic> json) {
@@ -42,7 +40,6 @@ class PersonModel {
       gender: json['gender'],
       age: json['dob']['age'],
       nat: json['nat'],
-      displayColor: color, // Atribui uma cor aleatória
     );
   }
 }

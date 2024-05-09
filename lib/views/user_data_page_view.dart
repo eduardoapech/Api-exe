@@ -1,9 +1,9 @@
 import 'package:api_dados/filter/nat.dart';
+import 'package:api_dados/filter/user_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/filter/services.dart';
 import '../filter/gender_dropdown.dart';
-import '../filter/age_range_fields.dart';
 
 class UserDataPage extends StatefulWidget {
   @override
@@ -14,9 +14,6 @@ class _UserDataPageState extends State<UserDataPage> {
   List<PersonModel> _users = [];
   List<PersonModel> _filteredUsers = [];
   bool _isLoading = false;
-  final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _minAgeController = TextEditingController();
-  final TextEditingController _maxAgeController = TextEditingController();
   String? _selectedGender;
   String? _selectedNationality;
 
@@ -24,15 +21,6 @@ class _UserDataPageState extends State<UserDataPage> {
   void initState() {
     super.initState();
     _loadUserData();
-    _searchController.addListener(_onSearchChanged);
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _minAgeController.dispose();
-    _maxAgeController.dispose();
-    super.dispose();
   }
 
   void _loadUserData() async {
@@ -50,17 +38,6 @@ class _UserDataPageState extends State<UserDataPage> {
     }
   }
 
-  void _onSearchChanged() {
-    var tempFilteredUsers = _users.where((user) {
-      return user.name.toLowerCase().startsWith(_searchController.text.toLowerCase()) &&
-          (_selectedGender == null || _selectedGender == 'all' || user.gender.toLowerCase() == _selectedGender!.toLowerCase()) &&
-          (_selectedNationality == null || user.nat.toLowerCase() == _selectedNationality!.toLowerCase()) &&
-          (int.tryParse(_minAgeController.text) == null || user.age >= int.tryParse(_minAgeController.text)!) &&
-          (int.tryParse(_maxAgeController.text) == null || user.age <= int.tryParse(_maxAgeController.text)!);
-    }).toList();
-    setState(() => _filteredUsers = tempFilteredUsers);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,22 +46,6 @@ class _UserDataPageState extends State<UserDataPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search by name...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-          ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 2.0),
             child: Row(
@@ -95,61 +56,55 @@ class _UserDataPageState extends State<UserDataPage> {
                     onChanged: (newValue) {
                       setState(() {
                         _selectedGender = newValue;
-                        _onSearchChanged();
                       });
                     },
                   ),
                 ),
-                SizedBox(width: 2),
                 Expanded(
-                  child: AgeRangeFields(
-                    minAgeController: _minAgeController,
-                    maxAgeController: _maxAgeController,
-                    onChanged: (_) => _onSearchChanged(),
+                  child: NationalityDropdown(
+                    selectedNationality: _selectedNationality,
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedNationality = newValue;
+                      });
+                    },
                   ),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 2.0),
-                  child: NationalityDropdown(
-                    selectedNationality: _selectedNationality,
-                    onChanged: (newValue) {
-                      setState(() {
-                        _selectedNationality = newValue;
-                        _onSearchChanged();
-                      });
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: _isLoading
-                      ? Center(child: CircularProgressIndicator())
-                      : _filteredUsers.isEmpty
-                          ? Center(child: Text('No users found'))
-                          : ListView.builder(
-                              itemCount: _filteredUsers.length,
-                              itemBuilder: (context, index) {
-                                return ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
-                                    radius: 25,
-                                  ),
-                                  title: Text(_filteredUsers[index].name),
-                                  subtitle: Text(
-                                      '${_filteredUsers[index].email}, ${_filteredUsers[index].city}, ${_filteredUsers[index].state}, ${_filteredUsers[index].gender}, Age: ${_filteredUsers[index].age}'),
-                                );
-                              },
+            child: _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : _filteredUsers.isEmpty
+                    ? Center(child: Text('No users found'))
+                    : ListView.builder(
+                        itemCount: _filteredUsers.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
+                              radius: 25,
                             ),
-                ),
-              ],
-            ),
+                            title: Text(_filteredUsers[index].name),
+                            subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city}, ${_filteredUsers[index].state}, ${_filteredUsers[index].gender}, Age: ${_filteredUsers[index].age}'),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => UserDetailPage(user: _filteredUsers[index]),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _loadUserData,
+        tooltip: 'Reload Data',
+        child: Icon(Icons.refresh),
       ),
     );
   }
