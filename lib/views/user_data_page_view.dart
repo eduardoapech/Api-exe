@@ -1,5 +1,5 @@
-import 'package:api_dados/filter/user_detail_page.dart';
 import 'package:flutter/material.dart';
+import 'package:api_dados/filter/user_detail_page.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/filter/services.dart';
 import '../filter/gender_dropdown.dart';
@@ -17,7 +17,7 @@ class _UserDataPageState extends State<UserDataPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUserData(); // Carrega os dados iniciais ao iniciar
   }
 
   void _loadUserData() async {
@@ -28,7 +28,7 @@ class _UserDataPageState extends State<UserDataPage> {
         _filteredUsers = users;
       });
     } catch (e) {
-      print('Error: $e');
+      print('Error fetching user data: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -53,6 +53,7 @@ class _UserDataPageState extends State<UserDataPage> {
                       setState(() {
                         _selectedGender = newValue;
                       });
+                      _loadUserData();
                     },
                   ),
                 ),
