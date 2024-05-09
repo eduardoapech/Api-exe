@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-class FilterModel {
+class PersonModel {
   final String id;
   final String name;
   final String username;
@@ -11,9 +11,10 @@ class FilterModel {
   final String state;
   final String gender;
   final int age;
+  final String nat;
   final Color displayColor; // Campo para armazenar a cor
 
-  FilterModel({
+  PersonModel({
     required this.id,
     required this.name,
     required this.username,
@@ -23,13 +24,14 @@ class FilterModel {
     required this.state,
     required this.gender,
     required this.age,
+    required this.nat,
     required this.displayColor,
   });
 
-  factory FilterModel.fromJson(Map<String, dynamic> json) {
+  factory PersonModel.fromJson(Map<String, dynamic> json) {
     Random random = Random();
     Color color = Colors.primaries[random.nextInt(Colors.primaries.length)];
-    return FilterModel(
+    return PersonModel(
       id: json['login']['uuid'],
       name: '${json['name']['first']} ${json['name']['last']}',
       username: json['login']['username'],
@@ -39,6 +41,7 @@ class FilterModel {
       state: json['location']['state'],
       gender: json['gender'],
       age: json['dob']['age'],
+      nat: json['nat'],
       displayColor: color, // Atribui uma cor aleatória
     );
   }

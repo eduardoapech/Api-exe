@@ -1,30 +1,19 @@
-
 import 'package:api_dados/filter/model.dart';
-
 import 'package:dio/dio.dart';
 
 class ApiServices {
   static const String baseUrl = 'https://randomuser.me/api/';
   Dio dio = Dio();
 
-  // Adiciona parâmetros opcionais para filtro de idade e gênero
-  Future<List<FilterModel>> fetchUserData(int count, {int? minAge, int? maxAge, String? gender}) async {
-    try {
-      var response = await dio.get('$baseUrl', queryParameters: {'results': count});
-      List<FilterModel> users = [];
-      for (var user in response.data['results']) {
-        FilterModel userModel = FilterModel.fromJson(user);
-        // Aplica o filtro se os parâmetros foram fornecidos
-        if ((minAge == null || userModel.age >= minAge) && 
-            (maxAge == null || userModel.age <= maxAge) &&
-            (gender == null || userModel.gender == gender)) {
-          users.add(userModel);
-        }
-      }
-      return users;
-    } catch (e) {
-      print(e);
-      throw Exception('Failed to load user data');
-    }
+  // Adiciona parâmetros opcionais para filtro de idade, gênero e nacionalidade
+  Future<List<PersonModel>> fetchUserData(int count, {int? minAge, int? maxAge}) async {
+    var queryParams = {
+      'results': count.toString(),
+      if (minAge != null) 'minAge': minAge.toString(),
+      if (maxAge != null) 'maxAge': maxAge.toString(),
+    };
+
+    var response = await dio.get(baseUrl, queryParameters: queryParams);
+    return response.data['results'].map<PersonModel>((user) => PersonModel.fromJson(user)).where((userModel) => (minAge == null || userModel.age >= minAge) && (maxAge == null || userModel.age <= maxAge)).toList();
   }
 }
