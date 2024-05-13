@@ -34,4 +34,31 @@ class PersonModel {
       age: json['dob']['age'],
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': this.id,
+      'name': this.name,
+      'username': this.username,
+      'email': this.email,
+      'avatarUrl': this.avatarUrl,
+      'city': this.city,
+      'state': this.state,
+      'gender': this.gender,
+      'age': this.age,
+    };
+  }
+  factory PersonModel.fromMap(Map<String, dynamic> map) { 
+    return PersonModel( 
+      id: map['id'],
+      name: map['name'],
+      username: map['username'],
+      email: map['email'],
+      avatarUrl: map['avatarUrl'],
+      city: map['city'],
+      state: map['state'],
+      gender: map['gender'],
+      age: map['age'],
+    );
+  }
 }
