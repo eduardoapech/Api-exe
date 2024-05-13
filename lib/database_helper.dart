@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:api_dados/filter/model.dart'; 
+import 'package:api_dados/filter/model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -17,59 +17,64 @@ class DatabaseHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-
-    return await openDatabase(path, version: 2, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-    CREATE TABLE users (
+    CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       username TEXT NOT NULL,
       email TEXT NOT NULL,
-      avatarUrl TEXT NOT NULL,
+      avatarUrl TEXT,
       city TEXT NOT NULL,
       state TEXT NOT NULL,
       gender TEXT NOT NULL,
       age INTEGER NOT NULL
-    )
+    );
     ''');
   }
 
-  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < newVersion) {
-      
-      if (oldVersion < 2) {
-        
-        await db.execute("ALTER TABLE users ADD COLUMN username TEXT NOT NULL DEFAULT ''");
-      }
-    }
-  }
-
-  // Método para inserir usuário
   Future<int> createUser(PersonModel user) async {
-    final db = await instance.database;
-    return db.insert('users', user.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    try {
+      final db = await database;
+      return await db.rawInsert(
+          'INSERT INTO users(id, name, username, email, avatarUrl, city, state, gender, age) '
+          'VALUES(?,?,?,?,?,?,?,?,?)',
+          [
+            user.id,
+            user.name,
+            user.username,
+            user.email,
+            user.avatarUrl,
+            user.city,
+            user.state,
+            user.gender,
+            user.age,
+          ]);
+    } catch (e) {
+      print('Error inserting user: $e');
+      return 0;
+    }
   }
 
-  Future<PersonModel?> readUser(String id) async {
-    final db = await instance.database;
-    final maps = await db.query(
-      'users',
-      columns: ['id', 'name', 'username', 'email', 'avatarUrl', 'city', 'state', 'gender', 'age'],
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (maps.isNotEmpty) {
-      return PersonModel.fromMap(maps.first);
+  Future<PersonModel?> getUserById(String id) async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> results = await db.rawQuery('SELECT * FROM users WHERE id = ?', [id]);
+      if (results.isNotEmpty) {
+        return PersonModel.fromMap(results.first);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching user by id: $e');
+      return null;
     }
-    return null;
   }
 
   Future close() async {
-    final db = await instance.database;
+    final db = await database;
     db.close();
   }
 }

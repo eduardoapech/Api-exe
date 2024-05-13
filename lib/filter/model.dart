@@ -37,14 +37,14 @@ class PersonModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': this.id,
-      'name': this.name,
-      'username': this.username,
-      'email': this.email,
-      'avatarUrl': this.avatarUrl,
-      'city': this.city,
-      'state': this.state,
-      'gender': this.gender,
+      'id': '${this.id}',
+      'name': '${this.name}',
+      'username': '${this.username}',
+      'email': '${this.email}',
+      'avatarUrl': '${this.avatarUrl}',
+      'city': '${this.city}',
+      'state': '${this.state}',
+      'gender': '${this.gender}',
       'age': this.age,
     };
   }
