@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:api_dados/filter/model.dart';
+import 'package:api_dados/filter/model.dart'; // Certifique-se de que o caminho está correto para o seu modelo PersonModel.
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -21,7 +21,7 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
-    await db.execute('''
+    const sql = '''
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -33,36 +33,36 @@ class DatabaseHelper {
       gender TEXT NOT NULL,
       age INTEGER NOT NULL
     );
-    ''');
+    ''';
+    await db.execute(sql);
   }
 
   Future<int> createUser(PersonModel user) async {
     try {
       final db = await database;
-      return await db.rawInsert(
-          'INSERT INTO users(id, name, username, email, avatarUrl, city, state, gender, age) '
-          'VALUES(?,?,?,?,?,?,?,?,?)',
-          [
-            user.id,
-            user.name,
-            user.username,
-            user.email,
-            user.avatarUrl,
-            user.city,
-            user.state,
-            user.gender,
-            user.age,
-          ]);
+      return await db.rawInsert('INSERT INTO users(id, name, username, email, avatarUrl, city, state, gender, age) VALUES(?,?,?,?,?,?,?,?,?)', [
+        user.id,
+        user.name,
+        user.username,
+        user.email,
+        user.avatarUrl,
+        user.city,
+        user.state,
+        user.gender,
+        user.age,
+      ]);
     } catch (e) {
       print('Error inserting user: $e');
       return 0;
     }
   }
 
-  Future<PersonModel?> getUserById(String id) async {
+  Future<PersonModel?> getUserId(String id) async {
     try {
       final db = await database;
-      final List<Map<String, dynamic>> results = await db.rawQuery('SELECT * FROM users WHERE id = ?', [id]);
+      final List<Map<String, dynamic>> results = await db.rawQuery('SELECT * FROM users WHERE id = ?', [
+        id,
+      ]);
       if (results.isNotEmpty) {
         return PersonModel.fromMap(results.first);
       }
@@ -70,6 +70,27 @@ class DatabaseHelper {
     } catch (e) {
       print('Error fetching user by id: $e');
       return null;
+    }
+  }
+
+  Future<int> updateUser(PersonModel user) async {
+    try {
+      final db = await database;
+      final result = await db.rawUpdate('UPDATE users SET name = ?, username = ?, email = ?, avatarUrl = ?, city = ?, state = ?, gender = ?, age = ? WHERE id = ?', [
+        user.name,
+        user.username,
+        user.email,
+        user.avatarUrl,
+        user.city,
+        user.state,
+        user.gender,
+        user.age,
+        user.id,
+      ]);
+      return result;
+    } catch (e) {
+      print('Error updating user: $e');
+      return 0;
     }
   }
 
