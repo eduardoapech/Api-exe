@@ -59,7 +59,7 @@ class _UserDataPageState extends State<UserDataPage> {
   Future<bool?> showDeleteConfirmationDialog(BuildContext context, String userId, String userName) {
     return showDialog<bool>(
       context: context,
-      barrierDismissible: false, // O usuário deve tocar em um botão para fechar o diálogo
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Confirmar exclusão'),
@@ -74,13 +74,13 @@ class _UserDataPageState extends State<UserDataPage> {
             TextButton(
               child: Text('Cancelar'),
               onPressed: () {
-                Navigator.of(context).pop(false); // Retorna false para indicar que a exclusão foi cancelada
+                Navigator.of(context).pop(false);
               },
             ),
             TextButton(
               child: Text('Apagar'),
               onPressed: () async {
-                Navigator.of(context).pop(true); // Retorna true para indicar que a exclusão foi confirmada
+                Navigator.of(context).pop(true);
               },
             ),
           ],
@@ -107,14 +107,15 @@ class _UserDataPageState extends State<UserDataPage> {
                         '${_filteredUsers[index].state}, ${_filteredUsers[index].gender},'
                         ' Age: ${_filteredUsers[index].age}'),
                     onTap: () async {
-                      final result = await Navigator.of(context).push(
+                      final updatedUser = await Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => UserDetailPage(user: _filteredUsers[index], showSaveButton: true),
                         ),
                       );
-                      if (result == true) {
-                        _loadUserData(); // Refresh user data after returning from detail page
-                        _onItemTapped(1); // Switch to saved data tab
+                      if (updatedUser != null && updatedUser is PersonModel) {
+                        setState(() {
+                          _filteredUsers[index] = updatedUser;
+                        });
                       }
                     },
                   );
@@ -157,18 +158,17 @@ class _UserDataPageState extends State<UserDataPage> {
                   ),
                   title: Text(user.name),
                   subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(
+                  onTap: () async {
+                    final updatedUser = await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => UserDetailPage(user: user, showSaveButton: false),
                       ),
-                    )
-                        .then((value) {
-                      if (value == true) {
-                        _loadSavedUsers(); // Refresh saved users after returning from detail page
-                      }
-                    });
+                    );
+                    if (updatedUser != null && updatedUser is PersonModel) {
+                      setState(() {
+                        _savedUsers[index] = updatedUser;
+                      });
+                    }
                   },
                 ),
               );

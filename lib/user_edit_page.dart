@@ -59,7 +59,7 @@ class _UserEditPageState extends State<UserEditPage> {
         ),
       );
 
-      Navigator.pop(context, true); // Return true to indicate the user was updated
+      Navigator.pop(context, updatedUser); // Return the updated user to the previous screen
     }
   }
 
@@ -175,10 +175,7 @@ class _UserEditPageState extends State<UserEditPage> {
                 child: FilledButton.tonal(
                   onPressed: _saveUser,
                   child: Text('Salvar Usuário'),
-                  style: ButtonStyle( 
-                    backgroundColor: MaterialStatePropertyAll(const Color.fromARGB(255, 213, 223, 231)),
-                    foregroundColor: MaterialStatePropertyAll(Color.fromARGB(255, 41, 124, 45)),
-                  )
+                  style: ButtonStyle(backgroundColor: MaterialStateProperty.all(const Color.fromARGB(255, 179, 206, 228)), foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 102, 153, 73))),
                 ),
               ),
             ],
