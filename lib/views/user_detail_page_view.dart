@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/database_helper.dart';
+import 'package:api_dados/user_edit_page.dart'; // Importe o arquivo da página de edição
 
 class UserDetailPage extends StatelessWidget {
   final PersonModel user;
+  final bool showSaveButton;
 
-  UserDetailPage({required this.user});
+  UserDetailPage({required this.user, this.showSaveButton = false});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(user.name),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => UserEditPage(user: user),
+                ),
+              ).then((value) {
+                if (value == true) {
+                  Navigator.pop(context, true);
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -23,6 +41,10 @@ class UserDetailPage extends StatelessWidget {
             Expanded(
               child: _buildUserInfo(context),
             ),
+            if (showSaveButton)
+              Center(
+                child: _saveButton(context),
+              ),
           ],
         ),
       ),
@@ -49,9 +71,6 @@ class UserDetailPage extends StatelessWidget {
           _buildUserDetailTile(Icons.map, 'State', user.state),
           _buildUserDetailTile(Icons.transgender, 'Gender', user.gender),
           _buildUserDetailTile(Icons.cake, 'Age', user.age.toString()),
-          Center(
-            child: _saveButton(context),
-          ),
         ],
       ),
     );
@@ -72,13 +91,13 @@ class UserDetailPage extends StatelessWidget {
         backgroundColor: Color.fromARGB(255, 40, 51, 59),
         disabledForegroundColor: Colors.grey.withOpacity(0.38),
       ),
-      child: const Text('Save User'),
+      child: const Text('Salvar Usuário'),
     );
   }
 
   void _saveUser(BuildContext context) async {
     final dbHelper = DatabaseHelper.instance;
-    String message; // Declare a variável no início para garantir que ela está acessível em todo o método
+    String message;
 
     // Verifica se o usuário já existe
     final existingUser = await dbHelper.getUserId(user.id);
@@ -94,14 +113,14 @@ class UserDetailPage extends StatelessWidget {
     }
 
     final snackBar = SnackBar(
-      content: Text(message), // Aqui a variável message será sempre inicializada
+      content: Text(message),
       duration: const Duration(seconds: 1),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
     // Volta para a tela inicial após salvar
-    Future.delayed(const Duration(seconds: 0), () {
-      Navigator.pop(context, result != 0); // Retorna true se o usuário foi salvo ou atualizado com sucesso
+    Future.delayed(const Duration(seconds: 1), () {
+      Navigator.pop(context, result != 0);
     });
   }
 }

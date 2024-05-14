@@ -56,6 +56,39 @@ class _UserDataPageState extends State<UserDataPage> {
     await _loadSavedUsers();
   }
 
+  Future<bool?> showDeleteConfirmationDialog(BuildContext context, String userId, String userName) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // O usuário deve tocar em um botão para fechar o diálogo
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmar exclusão'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Tem certeza que deseja excluir $userName?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop(false); // Retorna false para indicar que a exclusão foi cancelada
+              },
+            ),
+            TextButton(
+              child: Text('Apagar'),
+              onPressed: () async {
+                Navigator.of(context).pop(true); // Retorna true para indicar que a exclusão foi confirmada
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _showUserData() {
     return _isLoading
         ? Center(child: CircularProgressIndicator())
@@ -76,11 +109,11 @@ class _UserDataPageState extends State<UserDataPage> {
                     onTap: () async {
                       final result = await Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => UserDetailPage(user: _filteredUsers[index]),
+                          builder: (context) => UserDetailPage(user: _filteredUsers[index], showSaveButton: true),
                         ),
                       );
                       if (result == true) {
-                        _loadSavedUsers(); // Refresh saved users after returning from detail page
+                        _loadUserData(); // Refresh user data after returning from detail page
                         _onItemTapped(1); // Switch to saved data tab
                       }
                     },
@@ -91,33 +124,24 @@ class _UserDataPageState extends State<UserDataPage> {
 
   Widget _showSavedData() {
     return _savedUsers.isEmpty
-        ? Center(child: Text('Vazio'))
+        ? Center(child: Text('No saved users'))
         : ListView.builder(
             itemCount: _savedUsers.length,
             itemBuilder: (context, index) {
               final user = _savedUsers[index];
               return Dismissible(
                 key: Key(user.id),
-                direction: DismissDirection.horizontal, // Permite deslizar em ambas as direções
-
+                direction: DismissDirection.endToStart,
+                confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
                 onDismissed: (direction) async {
                   await _deleteUser(user.id);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${user.name} foi Apagado'),
+                      content: Text('${user.name} foi apagado'),
                     ),
                   );
                 },
                 background: Container(
-                  color: Colors.red,
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
-                ),
-                secondaryBackground: Container(
                   color: Colors.red,
                   alignment: Alignment.centerRight,
                   padding: EdgeInsets.symmetric(horizontal: 20),
@@ -126,23 +150,18 @@ class _UserDataPageState extends State<UserDataPage> {
                     color: Colors.white,
                   ),
                 ),
-                resizeDuration: const Duration(milliseconds: 300),
-                movementDuration: const Duration(milliseconds: 200),
-                dismissThresholds: const <DismissDirection, double>{},
-                crossAxisEndOffset: 0.5,
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(user.avatarUrl),
                     radius: 25,
                   ),
                   title: Text(user.name),
-                  subtitle: Text('${user.email}, ${user.city}, ${user.state},'
-                      ' ${user.gender}, Age: ${user.age}'),
+                  subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
                   onTap: () {
                     Navigator.of(context)
                         .push(
                       MaterialPageRoute(
-                        builder: (context) => UserDetailPage(user: user),
+                        builder: (context) => UserDetailPage(user: user, showSaveButton: false),
                       ),
                     )
                         .then((value) {
