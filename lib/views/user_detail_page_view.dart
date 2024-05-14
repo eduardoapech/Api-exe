@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/database_helper.dart';
-import 'package:api_dados/user_edit_page.dart'; // Importe o arquivo da página de edição
+import 'package:api_dados/views/user_edit_page_view.dart'; // Importe o arquivo da página de edição
 
 class UserDetailPage extends StatefulWidget {
   final PersonModel user;
@@ -31,11 +31,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
           IconButton(
             icon: Icon(Icons.edit),
             onPressed: () {
-              Navigator.of(context).push(
+              Navigator.of(context)
+                  .push(
                 MaterialPageRoute(
                   builder: (context) => UserEditPage(user: _user),
                 ),
-              ).then((updatedUser) {
+              )
+                  .then((updatedUser) {
                 if (updatedUser != null) {
                   setState(() {
                     _user = updatedUser;
