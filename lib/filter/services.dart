@@ -1,7 +1,7 @@
-import 'package:api_dados/filter/model.dart';
 import 'package:dio/dio.dart';
+import 'package:api_dados/filter/model.dart';
 
-ApiServices() async {
+Future<List<PersonModel>> fetchRandomUsers() async {
   const String baseUrl = 'https://randomuser.me/api/1.4/?results=10';
   Dio dio = Dio();
 
@@ -12,8 +12,10 @@ ApiServices() async {
       return usersData.map<PersonModel>((user) => PersonModel.fromJson(user)).toList();
     } else {
       print('Failed to load user data');
+      return [];
     }
   } catch (e) {
     print(e.toString());
+    return [];
   }
 }

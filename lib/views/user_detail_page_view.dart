@@ -67,12 +67,12 @@ class UserDetailPage extends StatelessWidget {
   Widget _saveButton(BuildContext context) {
     return TextButton(
       onPressed: () => _saveUser(context),
-      child: const Text('Save User'),
       style: TextButton.styleFrom(
         foregroundColor: Colors.white,
         backgroundColor: Color.fromARGB(255, 40, 51, 59),
-        disabledForegroundColor: Colors.grey.withOpacity(0.38).withOpacity(0.38),
+        disabledForegroundColor: Colors.grey.withOpacity(0.38),
       ),
+      child: const Text('Save User'),
     );
   }
 
@@ -90,13 +90,18 @@ class UserDetailPage extends StatelessWidget {
     } else {
       // Cria um novo usuário
       result = await dbHelper.createUser(user);
-      message = result != 0 ? 'Usuário Salvo com Sucesso' : 'Usuário já está Salvo';
+      message = result != 0 ? 'Usuário Salvo com Sucesso' : 'Falha ao Salvar Usuário';
     }
 
     final snackBar = SnackBar(
       content: Text(message), // Aqui a variável message será sempre inicializada
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+    // Volta para a tela inicial após salvar
+    Future.delayed(const Duration(seconds: 0), () {
+      Navigator.pop(context, result != 0); // Retorna true se o usuário foi salvo ou atualizado com sucesso
+    });
   }
 }

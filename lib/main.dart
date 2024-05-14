@@ -1,6 +1,5 @@
-import 'package:api_dados/views/user_data_page_view.dart';
 import 'package:flutter/material.dart';
-// Substitua 'your_api_class_file.dart' pelo nome do arquivo onde você definiu a classe API
+import 'package:api_dados/views/user_data_page_view.dart'; // Certifique-se de que o caminho está correto
 
 void main() {
   runApp(MyApp());

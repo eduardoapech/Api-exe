@@ -40,17 +40,20 @@ class DatabaseHelper {
   Future<int> createUser(PersonModel user) async {
     try {
       final db = await database;
-      return await db.rawInsert('INSERT INTO users(id, name, username, email, avatarUrl, city, state, gender, age) VALUES(?,?,?,?,?,?,?,?,?)', [
-        user.id,
-        user.name,
-        user.username,
-        user.email,
-        user.avatarUrl,
-        user.city,
-        user.state,
-        user.gender,
-        user.age,
-      ]);
+      return await db.rawInsert(
+          'INSERT INTO users(id, name, username, email, avatarUrl, city, '
+          'state, gender, age) VALUES(?,?,?,?,?,?,?,?,?)',
+          [
+            user.id,
+            user.name,
+            user.username,
+            user.email,
+            user.avatarUrl,
+            user.city,
+            user.state,
+            user.gender,
+            user.age,
+          ]);
     } catch (e) {
       print('Error inserting user: $e');
       return 0;
@@ -76,21 +79,45 @@ class DatabaseHelper {
   Future<int> updateUser(PersonModel user) async {
     try {
       final db = await database;
-      final result = await db.rawUpdate('UPDATE users SET name = ?, username = ?, email = ?, avatarUrl = ?, city = ?, state = ?, gender = ?, age = ? WHERE id = ?', [
-        user.name,
-        user.username,
-        user.email,
-        user.avatarUrl,
-        user.city,
-        user.state,
-        user.gender,
-        user.age,
-        user.id,
-      ]);
+      final result = await db.rawUpdate(
+          'UPDATE users SET name = ?, username = ?, email = ?, avatarUrl = ?,'
+          'city = ?, state = ?, gender = ?, age = ? WHERE id = ?',
+          [
+            user.name,
+            user.username,
+            user.email,
+            user.avatarUrl,
+            user.city,
+            user.state,
+            user.gender,
+            user.age,
+            user.id,
+          ]);
       return result;
     } catch (e) {
       print('Error updating user: $e');
       return 0;
+    }
+  }
+
+  Future<int> deleteUser(String id) async {
+    try {
+      final db = await database;
+      return await db.delete('users', where: 'id = ?', whereArgs: [id]);
+    } catch (e) {
+      print('Error deleting user: $e');
+      return 0;
+    }
+  }
+
+  Future<List<PersonModel>> getAllUsers() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> results = await db.query('users');
+      return results.map((map) => PersonModel.fromMap(map)).toList();
+    } catch (e) {
+      print('Error fetching all users: $e');
+      return [];
     }
   }
 
