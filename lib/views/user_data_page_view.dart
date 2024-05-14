@@ -91,7 +91,7 @@ class _UserDataPageState extends State<UserDataPage> {
 
   Widget _showSavedData() {
     return _savedUsers.isEmpty
-        ? Center(child: Text('No saved users'))
+        ? Center(child: Text('Vazio'))
         : ListView.builder(
             itemCount: _savedUsers.length,
             itemBuilder: (context, index) {
@@ -99,6 +99,7 @@ class _UserDataPageState extends State<UserDataPage> {
               return Dismissible(
                 key: Key(user.id),
                 direction: DismissDirection.horizontal, // Permite deslizar em ambas as direções
+
                 onDismissed: (direction) async {
                   await _deleteUser(user.id);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -125,13 +126,18 @@ class _UserDataPageState extends State<UserDataPage> {
                     color: Colors.white,
                   ),
                 ),
+                resizeDuration: const Duration(milliseconds: 300),
+                movementDuration: const Duration(milliseconds: 200),
+                dismissThresholds: const <DismissDirection, double>{},
+                crossAxisEndOffset: 0.5,
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(user.avatarUrl),
                     radius: 25,
                   ),
                   title: Text(user.name),
-                  subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+                  subtitle: Text('${user.email}, ${user.city}, ${user.state},'
+                      ' ${user.gender}, Age: ${user.age}'),
                   onTap: () {
                     Navigator.of(context)
                         .push(
