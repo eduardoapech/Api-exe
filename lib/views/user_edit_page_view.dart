@@ -51,36 +51,44 @@ class _UserEditPageState extends State<UserEditPage> {
     _originalAge = widget.user.age;
   }
 
-  Future<bool> _showConfirmationDialog() async {
+  Future<bool> _showConfirmationDialog(String message) async {
     return await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Confirmação'),
-            content: Text('Tem certeza de que deseja sair sem salvar as alterações?'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false), // Retorna false para cancelar a ação de voltar
-                child: Text('Não'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true), // Retorna true para confirmar a ação de voltar
-                child: Text('Sim'),
-              ),
-            ],
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirmação'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // Retorna false para cancelar a ação
+            child: Text('Não'),
           ),
-        ) ??
-        false;
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true), // Retorna true para confirmar a ação
+            child: Text('Sim'),
+          ),
+        ],
+      ),
+    ) ?? false;
   }
 
-  void _saveUser(BuildContext context) async {
+  Future<void> _saveUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       // Verificação de alterações
-      bool isEdited = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
+      bool isEdited = _nameController.text != _originalName ||
+          _usernameController.text != _originalUsername ||
+          _emailController.text != _originalEmail ||
+          _cityController.text != _originalCity ||
+          _stateController.text != _originalState ||
+          _gender != _originalGender ||
+          int.parse(_ageController.text) != _originalAge;
 
       if (!isEdited) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nenhuma alteração detectada.')));
         return;
       }
+
+      bool confirmSave = await _showConfirmationDialog('Tem certeza de que deseja salvar as alterações?');
+      if (!confirmSave) return;
 
       final updatedUser = PersonModel(
         id: widget.user.id,
@@ -158,23 +166,19 @@ class _UserEditPageState extends State<UserEditPage> {
     );
   }
 
-  Future<bool> _onWillPop() async {
-    bool isEdited = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
-
-    if (isEdited) {
-      return await _showConfirmationDialog();
-    } else {
-      return true;
-    }
-  }
-
   Future<void> _handleBackPress() async {
-    bool isEdited = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
+    bool isEdited = _nameController.text != _originalName ||
+        _usernameController.text != _originalUsername ||
+        _emailController.text != _originalEmail ||
+        _cityController.text != _originalCity ||
+        _stateController.text != _originalState ||
+        _gender != _originalGender ||
+        int.parse(_ageController.text) != _originalAge;
 
     if (isEdited) {
-      bool confirmExit = await _showConfirmationDialog();
+      bool confirmExit = await _showConfirmationDialog('Tem certeza de que deseja sair sem salvar as alterações?');
       if (confirmExit) {
-        _saveUser(context);
+        Navigator.of(context).pop();
       }
     } else {
       Navigator.of(context).pop();
