@@ -3,35 +3,35 @@ class PersonModel {
   final String name;
   final String username;
   final String email;
+  final String avatarUrl;
   final String city;
   final String state;
   final String gender;
   final int age;
-  final String avatarUrl;
 
   PersonModel({
     required this.id,
     required this.name,
     required this.username,
     required this.email,
+    required this.avatarUrl,
     required this.city,
     required this.state,
     required this.gender,
     required this.age,
-    required this.avatarUrl,
   });
 
   factory PersonModel.fromJson(Map<String, dynamic> json) {
     return PersonModel(
       id: json['login']['uuid'],
-      name: "${json['name']['first']} ${json['name']['last']}",
+      name: '${json['name']['first']} ${json['name']['last']}',
       username: json['login']['username'],
       email: json['email'],
+      avatarUrl: json['picture']['large'],
       city: json['location']['city'],
       state: json['location']['state'],
       gender: json['gender'],
       age: json['dob']['age'],
-      avatarUrl: json['picture']['large'],
     );
   }
 
@@ -41,11 +41,11 @@ class PersonModel {
       'name': name,
       'username': username,
       'email': email,
+      'avatarUrl': avatarUrl,
       'city': city,
       'state': state,
       'gender': gender,
       'age': age,
-      'avatarUrl': avatarUrl,
     };
   }
 
@@ -55,11 +55,11 @@ class PersonModel {
       name: map['name'],
       username: map['username'],
       email: map['email'],
+      avatarUrl: map['avatarUrl'],
       city: map['city'],
       state: map['state'],
       gender: map['gender'],
       age: map['age'],
-      avatarUrl: map['avatarUrl'],
     );
   }
 }

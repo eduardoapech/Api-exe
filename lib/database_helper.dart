@@ -63,9 +63,7 @@ class DatabaseHelper {
   Future<PersonModel?> getUserId(String id) async {
     try {
       final db = await database;
-      final List<Map<String, dynamic>> results = await db.rawQuery('SELECT * FROM users WHERE id = ?', [
-        id,
-      ]);
+      final List<Map<String, dynamic>> results = await db.rawQuery('SELECT * FROM users WHERE id = ?', [id]);
       if (results.isNotEmpty) {
         return PersonModel.fromMap(results.first);
       }

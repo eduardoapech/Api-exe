@@ -1,8 +1,8 @@
-import 'package:api_dados/views/user_detail_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/filter/services.dart';
 import 'package:api_dados/database_helper.dart';
+import 'package:api_dados/views/user_detail_page_view.dart';
 
 class UserDataPage extends StatefulWidget {
   @override
@@ -90,42 +90,59 @@ class _UserDataPageState extends State<UserDataPage> {
   }
 
   Widget _showUserData() {
-    return _isLoading
-        ? Center(child: CircularProgressIndicator())
-        : _filteredUsers.isEmpty
-            ? Center(child: Text('No users found'))
-            : ListView.builder(
-                itemCount: _filteredUsers.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
-                      radius: 25,
-                    ),
-                    title: Text(_filteredUsers[index].name),
-                    subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city},'
-                        '${_filteredUsers[index].state}, ${_filteredUsers[index].gender},'
-                        ' Age: ${_filteredUsers[index].age}'),
-                    onTap: () async {
-                      final updatedUser = await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => UserDetailPage(user: _filteredUsers[index], showSaveButton: true),
-                        ),
-                      );
-                      if (updatedUser != null && updatedUser is PersonModel) {
-                        setState(() {
-                          _filteredUsers[index] = updatedUser;
-                        });
-                      }
-                    },
-                  );
-                },
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    } else if (_filteredUsers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Nenhum usuário encontrado'),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadUserData,
+              child: Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return ListView.builder(
+        itemCount: _filteredUsers.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
+              radius: 25,
+            ),
+            title: Text(_filteredUsers[index].name),
+            subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city},'
+                '${_filteredUsers[index].state}, ${_filteredUsers[index].gender},'
+                ' Age: ${_filteredUsers[index].age}'),
+            onTap: () async {
+              final updatedUser = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => UserDetailPage(user: _filteredUsers[index], showSaveButton: true),
+                ),
               );
+              if (updatedUser != null && updatedUser is PersonModel) {
+                setState(() {
+                  _filteredUsers.removeAt(index); // Remove o usuário atualizado da lista de "Show Data"
+                  if (!_savedUsers.any((user) => user.id == updatedUser.id)) {
+                    _savedUsers.add(updatedUser); // Adiciona o usuário à lista de "Save Data" se não estiver presente
+                  }
+                });
+              }
+            },
+          );
+        },
+      );
+    }
   }
 
   Widget _showSavedData() {
     return _savedUsers.isEmpty
-        ? Center(child: Text('No saved users'))
+        ? Center(child: Text('Nenhum usuário salvo'))
         : ListView.builder(
             itemCount: _savedUsers.length,
             itemBuilder: (context, index) {
@@ -138,14 +155,14 @@ class _UserDataPageState extends State<UserDataPage> {
                   await _deleteUser(user.id);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${user.name} foi apagado'),
+                      content: Text('${user.name} foi excluído'),
                     ),
                   );
                 },
                 background: Container(
                   color: Colors.red,
-                  alignment: Alignment.centerRight,
                   padding: EdgeInsets.symmetric(horizontal: 20),
+                  alignment: AlignmentDirectional.centerEnd,
                   child: Icon(
                     Icons.delete,
                     color: Colors.white,
@@ -161,12 +178,16 @@ class _UserDataPageState extends State<UserDataPage> {
                   onTap: () async {
                     final updatedUser = await Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => UserDetailPage(user: user, showSaveButton: false),
+                        builder: (context) => UserDetailPage(user: user, showSaveButton: true),
                       ),
                     );
                     if (updatedUser != null && updatedUser is PersonModel) {
                       setState(() {
-                        _savedUsers[index] = updatedUser;
+                        _savedUsers[index] = updatedUser; // Atualiza o usuário na lista de "Save Data"
+                        int filteredUserIndex = _filteredUsers.indexWhere((u) => u.id == updatedUser.id);
+                        if (filteredUserIndex != -1) {
+                          _filteredUsers[filteredUserIndex] = updatedUser; // Atualiza o usuário na lista de "Show Data"
+                        }
                       });
                     }
                   },
@@ -178,15 +199,20 @@ class _UserDataPageState extends State<UserDataPage> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> _pages = <Widget>[
+      _showUserData(),
+      _showSavedData(),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Random User Data'),
+        title: Text('User Data'),
       ),
-      body: _selectedIndex == 0 ? _showUserData() : _showSavedData(),
+      body: _pages.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
+            icon: Icon(Icons.home),
             label: 'Show Data',
           ),
           BottomNavigationBarItem(
@@ -195,13 +221,12 @@ class _UserDataPageState extends State<UserDataPage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               onPressed: _loadUserData,
-              tooltip: 'Reload Users',
+              tooltip: 'Recarregar Usuários',
               child: Icon(Icons.refresh),
             )
           : null,

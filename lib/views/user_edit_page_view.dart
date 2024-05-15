@@ -1,3 +1,4 @@
+import 'package:api_dados/validator/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/database_helper.dart';
@@ -33,7 +34,7 @@ class _UserEditPageState extends State<UserEditPage> {
     _age = widget.user.age;
   }
 
-  void _saveUser() async {
+  void _saveUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -59,8 +60,63 @@ class _UserEditPageState extends State<UserEditPage> {
         ),
       );
 
-      Navigator.pop(context, updatedUser); // Return the updated user to the previous screen
+      Navigator.pop(context, updatedUser); // Retorna o usuário atualizado para a tela anterior
     }
+  }
+
+  InputDecoration _inputDecoration(String labelText) {
+    return InputDecoration(
+      labelText: labelText,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.blue),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.red),
+      ),
+      contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+    );
+  }
+
+  Widget _buildTextField({
+    required String labelText,
+    required String initialValue,
+    required FormFieldSetter<String> onSaved,
+    required FormFieldValidator<String> validator,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        initialValue: initialValue,
+        decoration: _inputDecoration(labelText),
+        validator: validator,
+        onSaved: onSaved,
+        keyboardType: keyboardType,
+      ),
+    );
+  }
+
+  Widget _saveButton(BuildContext context) {
+    return TextButton(
+      onPressed: () => _saveUser(context),
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Color.fromARGB(255, 40, 51, 59),
+        disabledForegroundColor: Colors.grey.withOpacity(0.38),
+        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+      ),
+      child: const Text('Salvar Usuário'),
+    );
   }
 
   @override
@@ -75,109 +131,66 @@ class _UserEditPageState extends State<UserEditPage> {
           key: _formKey,
           child: ListView(
             children: <Widget>[
-              TextFormField(
+              _buildTextField(
+                labelText: 'Name',
                 initialValue: _name,
-                decoration: InputDecoration(labelText: 'Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
+                validator: Validators.validateName,
                 onSaved: (value) {
                   _name = value!;
                 },
               ),
-              TextFormField(
+              _buildTextField(
+                labelText: 'Username',
                 initialValue: _username,
-                decoration: InputDecoration(labelText: 'Username'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a username';
-                  }
-                  return null;
-                },
+                validator: Validators.validateUsername,
                 onSaved: (value) {
                   _username = value!;
                 },
               ),
-              TextFormField(
+              _buildTextField(
+                labelText: 'Email',
                 initialValue: _email,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an email';
-                  }
-                  return null;
-                },
+                validator: Validators.validateEmail,
                 onSaved: (value) {
                   _email = value!;
                 },
+                keyboardType: TextInputType.emailAddress,
               ),
-              TextFormField(
+              _buildTextField(
+                labelText: 'City',
                 initialValue: _city,
-                decoration: InputDecoration(labelText: 'City'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a city';
-                  }
-                  return null;
-                },
+                validator: Validators.validateCity,
                 onSaved: (value) {
                   _city = value!;
                 },
               ),
-              TextFormField(
+              _buildTextField(
+                labelText: 'State',
                 initialValue: _state,
-                decoration: InputDecoration(labelText: 'State'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a state';
-                  }
-                  return null;
-                },
+                validator: Validators.validateState,
                 onSaved: (value) {
                   _state = value!;
                 },
               ),
-              TextFormField(
+              _buildTextField(
+                labelText: 'Gender',
                 initialValue: _gender,
-                decoration: InputDecoration(labelText: 'Gender'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a gender';
-                  }
-                  return null;
-                },
+                validator: Validators.validateGender,
                 onSaved: (value) {
                   _gender = value!;
                 },
               ),
-              TextFormField(
+              _buildTextField(
+                labelText: 'Age',
                 initialValue: _age.toString(),
-                decoration: InputDecoration(labelText: 'Age'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an age';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
+                validator: Validators.validateAge,
                 onSaved: (value) {
                   _age = int.parse(value!);
                 },
+                keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 20),
-              Center(
-                child: FilledButton.tonal(
-                  onPressed: _saveUser,
-                  child: Text('Salvar Usuário'),
-                  style: ButtonStyle(backgroundColor: MaterialStateProperty.all(const Color.fromARGB(255, 179, 206, 228)), foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 102, 153, 73))),
-                ),
-              ),
+              const SizedBox(height: 20),
+              _saveButton(context),
             ],
           ),
         ),

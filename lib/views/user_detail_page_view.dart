@@ -1,7 +1,7 @@
+import 'package:api_dados/views/user_edit_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/database_helper.dart';
-import 'package:api_dados/views/user_edit_page_view.dart'; // Importe o arquivo da página de edição
 
 class UserDetailPage extends StatefulWidget {
   final PersonModel user;
@@ -30,20 +30,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: () {
-              Navigator.of(context)
-                  .push(
+            onPressed: () async {
+              final updatedUser = await Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => UserEditPage(user: _user),
                 ),
-              )
-                  .then((updatedUser) {
-                if (updatedUser != null) {
-                  setState(() {
-                    _user = updatedUser;
-                  });
-                }
-              });
+              );
+              if (updatedUser != null && updatedUser is PersonModel) {
+                setState(() {
+                  _user = updatedUser;
+                });
+              }
             },
           ),
         ],
@@ -122,22 +119,20 @@ class _UserDetailPageState extends State<UserDetailPage> {
     if (existingUser != null) {
       // Atualiza o usuário existente
       result = await dbHelper.updateUser(_user);
-      message = result != 0 ? 'Usuário Atualizado com Sucesso' : 'Falha na Atualização';
+      message = 'Usuário atualizado com sucesso';
     } else {
-      // Cria um novo usuário
+      // Insere um novo usuário
       result = await dbHelper.createUser(_user);
-      message = result != 0 ? 'Usuário Salvo com Sucesso' : 'Falha ao Salvar Usuário';
+      message = 'Usuário salvo com sucesso';
     }
 
-    final snackBar = SnackBar(
-      content: Text(message),
-      duration: const Duration(seconds: 1),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
-    // Volta para a tela inicial após salvar
-    Future.delayed(const Duration(seconds: 1), () {
-      Navigator.pop(context, result != 0);
-    });
+    Navigator.pop(context, _user); // Retorna o usuário atualizado para a tela anterior
   }
 }
