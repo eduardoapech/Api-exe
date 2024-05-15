@@ -17,7 +17,12 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Por favor, insira um email';
     }
-    // Você pode adicionar uma validação de formato de email aqui, se necessário
+    // Regex para validação de e-mail
+    String pattern = r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = RegExp(pattern);
+    if (!regex.hasMatch(value)) {
+      return 'Insira um endereço de e-mail válido';
+    }
     return null;
   }
 
@@ -48,6 +53,9 @@ class Validators {
     }
     if (int.tryParse(value) == null) {
       return 'Por favor, insira um número válido';
+    }
+    if (value.length > 3) {
+      return 'A idade deve ter no máximo 3 dígitos';
     }
     return null;
   }

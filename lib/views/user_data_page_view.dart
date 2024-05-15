@@ -156,6 +156,7 @@ class _UserDataPageState extends State<UserDataPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${user.name} foi excluído'),
+                      duration: const Duration(milliseconds: 800),
                     ),
                   );
                 },

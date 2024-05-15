@@ -1,5 +1,7 @@
 import 'package:api_dados/validator/validators.dart';
+import 'package:api_dados/widgets/cs_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/database_helper.dart';
 
@@ -14,96 +16,88 @@ class UserEditPage extends StatefulWidget {
 
 class _UserEditPageState extends State<UserEditPage> {
   final _formKey = GlobalKey<FormState>();
-  late String _name;
-  late String _username;
-  late String _email;
-  late String _city;
-  late String _state;
+
+  // Controladores para os campos de texto
+  late TextEditingController _nameController;
+  late TextEditingController _usernameController;
+  late TextEditingController _emailController;
+  late TextEditingController _cityController;
+  late TextEditingController _stateController;
+  late TextEditingController _ageController;
+
   late String _gender;
-  late int _age;
+
+  // Valores originais para verificação
+  late String _originalName, _originalUsername, _originalEmail, _originalCity, _originalState, _originalGender;
+  late int _originalAge;
 
   @override
   void initState() {
     super.initState();
-    _name = widget.user.name;
-    _username = widget.user.username;
-    _email = widget.user.email;
-    _city = widget.user.city;
-    _state = widget.user.state;
-    _gender = widget.user.gender;
-    _age = widget.user.age;
+    _gender = _originalGender = widget.user.gender;
+
+    _nameController = TextEditingController(text: widget.user.name);
+    _usernameController = TextEditingController(text: widget.user.username);
+    _emailController = TextEditingController(text: widget.user.email);
+    _cityController = TextEditingController(text: widget.user.city);
+    _stateController = TextEditingController(text: widget.user.state);
+    _ageController = TextEditingController(text: widget.user.age.toString());
+
+    _originalName = widget.user.name;
+    _originalUsername = widget.user.username;
+    _originalEmail = widget.user.email;
+    _originalCity = widget.user.city;
+    _originalState = widget.user.state;
+    _originalAge = widget.user.age;
+  }
+
+  Future<bool> _showConfirmationDialog() async {
+    return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Confirmação'),
+            content: Text('Tem certeza de que deseja sair sem salvar as alterações?'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false), // Retorna false para cancelar a ação de voltar
+                child: Text('Não'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true), // Retorna true para confirmar a ação de voltar
+                child: Text('Sim'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   void _saveUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+      // Verificação de alterações
+      bool isEdited = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
+
+      if (!isEdited) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nenhuma alteração detectada.')));
+        return;
+      }
 
       final updatedUser = PersonModel(
         id: widget.user.id,
-        name: _name,
-        username: _username,
-        email: _email,
+        name: _nameController.text,
+        username: _usernameController.text,
+        email: _emailController.text,
         avatarUrl: widget.user.avatarUrl,
-        city: _city,
-        state: _state,
+        city: _cityController.text,
+        state: _stateController.text,
         gender: _gender,
-        age: _age,
+        age: int.parse(_ageController.text),
       );
-
       final dbHelper = DatabaseHelper.instance;
       await dbHelper.updateUser(updatedUser);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Cadastro atualizado com sucesso'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
-      Navigator.pop(context, updatedUser); // Retorna o usuário atualizado para a tela anterior
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cadastro atualizado com sucesso')));
+      Navigator.pop(context, updatedUser); // Retorna o usuário atualizado
     }
-  }
-
-  InputDecoration _inputDecoration(String labelText) {
-    return InputDecoration(
-      labelText: labelText,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: Colors.grey),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: Colors.blue),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: Colors.grey),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: Colors.red),
-      ),
-      contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-    );
-  }
-
-  Widget _buildTextField({
-    required String labelText,
-    required String initialValue,
-    required FormFieldSetter<String> onSaved,
-    required FormFieldValidator<String> validator,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: TextFormField(
-        initialValue: initialValue,
-        decoration: _inputDecoration(labelText),
-        validator: validator,
-        onSaved: onSaved,
-        keyboardType: keyboardType,
-      ),
-    );
   }
 
   Widget _saveButton(BuildContext context) {
@@ -119,79 +113,136 @@ class _UserEditPageState extends State<UserEditPage> {
     );
   }
 
+  Widget _buildGenderField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Gender',
+          style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center, // Centraliza os botões de rádio
+          children: <Widget>[
+            Radio<String>(
+              value: 'male',
+              groupValue: _gender,
+              onChanged: (value) {
+                setState(() {
+                  _gender = value!;
+                });
+              },
+            ),
+            Text('Male'),
+            Radio<String>(
+              value: 'female',
+              groupValue: _gender,
+              onChanged: (value) {
+                setState(() {
+                  _gender = value!;
+                });
+              },
+            ),
+            Text('Female'),
+          ],
+        ),
+        if (_gender.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+            child: Text(
+              'Por favor, selecione um gênero',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    bool isEdited = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
+
+    if (isEdited) {
+      return await _showConfirmationDialog();
+    } else {
+      return true;
+    }
+  }
+
+  Future<void> _handleBackPress() async {
+    bool isEdited = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
+
+    if (isEdited) {
+      bool confirmExit = await _showConfirmationDialog();
+      if (confirmExit) {
+        _saveUser(context);
+      }
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Editar Usuário'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              _buildTextField(
-                labelText: 'Name',
-                initialValue: _name,
-                validator: Validators.validateName,
-                onSaved: (value) {
-                  _name = value!;
-                },
-              ),
-              _buildTextField(
-                labelText: 'Username',
-                initialValue: _username,
-                validator: Validators.validateUsername,
-                onSaved: (value) {
-                  _username = value!;
-                },
-              ),
-              _buildTextField(
-                labelText: 'Email',
-                initialValue: _email,
-                validator: Validators.validateEmail,
-                onSaved: (value) {
-                  _email = value!;
-                },
-                keyboardType: TextInputType.emailAddress,
-              ),
-              _buildTextField(
-                labelText: 'City',
-                initialValue: _city,
-                validator: Validators.validateCity,
-                onSaved: (value) {
-                  _city = value!;
-                },
-              ),
-              _buildTextField(
-                labelText: 'State',
-                initialValue: _state,
-                validator: Validators.validateState,
-                onSaved: (value) {
-                  _state = value!;
-                },
-              ),
-              _buildTextField(
-                labelText: 'Gender',
-                initialValue: _gender,
-                validator: Validators.validateGender,
-                onSaved: (value) {
-                  _gender = value!;
-                },
-              ),
-              _buildTextField(
-                labelText: 'Age',
-                initialValue: _age.toString(),
-                validator: Validators.validateAge,
-                onSaved: (value) {
-                  _age = int.parse(value!);
-                },
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 20),
-              _saveButton(context),
-            ],
+    return WillPopScope(
+      onWillPop: () async {
+        await _handleBackPress();
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Editar Usuário'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: _handleBackPress,
+          ),
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: <Widget>[
+                CsTextField(
+                  labelText: 'Name',
+                  controller: _nameController,
+                  validator: Validators.validateName,
+                ),
+                CsTextField(
+                  labelText: 'Username',
+                  controller: _usernameController,
+                  validator: Validators.validateUsername,
+                ),
+                CsTextField(
+                  labelText: 'Email',
+                  controller: _emailController,
+                  validator: Validators.validateEmail,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                CsTextField(
+                  labelText: 'City',
+                  controller: _cityController,
+                  validator: Validators.validateCity,
+                ),
+                CsTextField(
+                  labelText: 'State',
+                  controller: _stateController,
+                  validator: Validators.validateState,
+                ),
+                _buildGenderField(),
+                CsTextField(
+                  labelText: 'Age',
+                  controller: _ageController,
+                  validator: Validators.validateAge,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _saveButton(context),
+              ],
+            ),
           ),
         ),
       ),

@@ -129,7 +129,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        duration: const Duration(seconds: 2),
+        duration: const Duration(milliseconds: 300),
       ),
     );
 
