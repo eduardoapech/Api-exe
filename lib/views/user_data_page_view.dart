@@ -56,8 +56,7 @@ class _UserDataPageState extends State<UserDataPage> {
     await _loadSavedUsers();
   }
 
-  Future<bool?> showDeleteConfirmationDialog(
-      BuildContext context, String userId, String userName) {
+  Future<bool?> showDeleteConfirmationDialog(BuildContext context, String userId, String userName) {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -117,24 +116,20 @@ class _UserDataPageState extends State<UserDataPage> {
               radius: 25,
             ),
             title: Text(_filteredUsers[index].name),
-            subtitle: Text(
-                '${_filteredUsers[index].email}, ${_filteredUsers[index].city},'
+            subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city},'
                 '${_filteredUsers[index].state}, ${_filteredUsers[index].gender},'
                 ' Age: ${_filteredUsers[index].age}'),
             onTap: () async {
               final updatedUser = await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => UserDetailPage(
-                      user: _filteredUsers[index], showSaveButton: true),
+                  builder: (context) => UserDetailPage(user: _filteredUsers[index], showSaveButton: true),
                 ),
               );
               if (updatedUser != null && updatedUser is PersonModel) {
                 setState(() {
-                  _filteredUsers.removeAt(
-                      index); // Remove o usuário atualizado da lista de "Show Data"
+                  _filteredUsers.removeAt(index); // Remove o usuário atualizado da lista de "Show Data"
                   if (!_savedUsers.any((user) => user.id == updatedUser.id)) {
-                    _savedUsers.add(
-                        updatedUser); // Adiciona o usuário à lista de "Save Data" se não estiver presente
+                    _savedUsers.add(updatedUser); // Adiciona o usuário à lista de "Save Data" se não estiver presente
                   }
                 });
               }
@@ -155,8 +150,7 @@ class _UserDataPageState extends State<UserDataPage> {
               return Dismissible(
                 key: Key(user.id),
                 direction: DismissDirection.endToStart,
-                confirmDismiss: (direction) =>
-                    showDeleteConfirmationDialog(context, user.id, user.name),
+                confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
                 onDismissed: (direction) async {
                   await _deleteUser(user.id);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -180,24 +174,19 @@ class _UserDataPageState extends State<UserDataPage> {
                     radius: 25,
                   ),
                   title: Text(user.name),
-                  subtitle: Text(
-                      '${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+                  subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
                   onTap: () async {
                     final updatedUser = await Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) =>
-                            UserDetailPage(user: user, showSaveButton: true),
+                        builder: (context) => UserDetailPage(user: user, showSaveButton: true),
                       ),
                     );
                     if (updatedUser != null && updatedUser is PersonModel) {
                       setState(() {
-                        _savedUsers[index] =
-                            updatedUser; // Atualiza o usuário na lista de "Save Data"
-                        int filteredUserIndex = _filteredUsers
-                            .indexWhere((u) => u.id == updatedUser.id);
+                        _savedUsers[index] = updatedUser; // Atualiza o usuário na lista de "Save Data"
+                        int filteredUserIndex = _filteredUsers.indexWhere((u) => u.id == updatedUser.id);
                         if (filteredUserIndex != -1) {
-                          _filteredUsers[filteredUserIndex] =
-                              updatedUser; // Atualiza o usuário na lista de "Show Data"
+                          _filteredUsers[filteredUserIndex] = updatedUser; // Atualiza o usuário na lista de "Show Data"
                         }
                       });
                     }

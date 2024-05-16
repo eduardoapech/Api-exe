@@ -14,7 +14,7 @@ class CsTextField extends StatelessWidget {
     required this.controller,
     required this.validator,
     this.keyboardType = TextInputType.text,
-    this.inputFormatters,
+    this.inputFormatters, required Null Function(dynamic value) onChanged,
   }) : super(key: key);
 
   InputDecoration _inputDecoration() {
