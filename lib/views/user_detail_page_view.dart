@@ -79,7 +79,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
         children: <Widget>[
           _buildUserDetailTile(Icons.person, 'Id', _user.id),
           _buildUserDetailTile(Icons.person_outline, 'Name', _user.name),
-          _buildUserDetailTile(Icons.account_circle, 'Username', _user.username),
+          _buildUserDetailTile(
+              Icons.account_circle, 'Username', _user.username),
           _buildUserDetailTile(Icons.email, 'Email', _user.email),
           _buildUserDetailTile(Icons.location_city, 'City', _user.city),
           _buildUserDetailTile(Icons.map, 'State', _user.state),
@@ -129,10 +130,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(seconds: 2),
       ),
     );
 
-    Navigator.pop(context, _user); // Retorna o usuário atualizado para a tela anterior
+    Navigator.pop(
+        context, _user); // Retorna o usuário atualizado para a tela anterior
   }
 }

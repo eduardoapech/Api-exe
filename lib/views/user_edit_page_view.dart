@@ -28,7 +28,12 @@ class _UserEditPageState extends State<UserEditPage> {
   late String _gender;
 
   // Valores originais para verificação
-  late String _originalName, _originalUsername, _originalEmail, _originalCity, _originalState, _originalGender;
+  late String _originalName,
+      _originalUsername,
+      _originalEmail,
+      _originalCity,
+      _originalState,
+      _originalGender;
   late int _originalAge;
 
   @override
@@ -53,22 +58,25 @@ class _UserEditPageState extends State<UserEditPage> {
 
   Future<bool> _showConfirmationDialog(String message) async {
     return await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Confirmação'),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false), // Retorna false para cancelar a ação
-            child: Text('Não'),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Confirmação'),
+            content: Text(message),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context)
+                    .pop(false), // Retorna false para cancelar a ação
+                child: Text('Não'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context)
+                    .pop(true), // Retorna true para confirmar a ação
+                child: Text('Sim'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true), // Retorna true para confirmar a ação
-            child: Text('Sim'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   Future<void> _saveUser(BuildContext context) async {
@@ -83,11 +91,13 @@ class _UserEditPageState extends State<UserEditPage> {
           int.parse(_ageController.text) != _originalAge;
 
       if (!isEdited) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nenhuma alteração detectada.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Nenhuma alteração detectada.')));
         return;
       }
 
-      bool confirmSave = await _showConfirmationDialog('Tem certeza de que deseja salvar as alterações?');
+      bool confirmSave = await _showConfirmationDialog(
+          'Tem certeza de que deseja salvar as alterações?');
       if (!confirmSave) return;
 
       final updatedUser = PersonModel(
@@ -103,7 +113,8 @@ class _UserEditPageState extends State<UserEditPage> {
       );
       final dbHelper = DatabaseHelper.instance;
       await dbHelper.updateUser(updatedUser);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cadastro atualizado com sucesso')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cadastro atualizado com sucesso')));
       Navigator.pop(context, updatedUser); // Retorna o usuário atualizado
     }
   }
@@ -130,7 +141,8 @@ class _UserEditPageState extends State<UserEditPage> {
           style: TextStyle(fontSize: 16, color: Colors.grey[700]),
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center, // Centraliza os botões de rádio
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Centraliza os botões de rádio
           children: <Widget>[
             Radio<String>(
               value: 'male',
@@ -176,7 +188,8 @@ class _UserEditPageState extends State<UserEditPage> {
         int.parse(_ageController.text) != _originalAge;
 
     if (isEdited) {
-      bool confirmExit = await _showConfirmationDialog('Tem certeza de que deseja sair sem salvar as alterações?');
+      bool confirmExit = await _showConfirmationDialog(
+          'Tem certeza de que deseja sair sem salvar as alterações?');
       if (confirmExit) {
         Navigator.of(context).pop();
       }
@@ -187,11 +200,9 @@ class _UserEditPageState extends State<UserEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        await _handleBackPress();
-        return false;
-      },
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {},
       child: Scaffold(
         appBar: AppBar(
           title: Text('Editar Usuário'),
