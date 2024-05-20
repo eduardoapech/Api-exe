@@ -1,7 +1,7 @@
 import 'package:api_dados/views/user_edit_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
-import 'package:api_dados/database_helper.dart';
+import 'package:api_dados/services/database_helper.dart';
 
 class UserDetailPage extends StatefulWidget {
   final PersonModel user;

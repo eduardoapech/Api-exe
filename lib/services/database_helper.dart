@@ -112,6 +112,7 @@ class DatabaseHelper {
     try {
       final db = await database;
       final List<Map<String, dynamic>> results = await db.query('users');
+      print('Procurando dados no banco de dados... encontrado: $results');
       return results.map((map) => PersonModel.fromMap(map)).toList();
     } catch (e) {
       print('Error fetching all users: $e');

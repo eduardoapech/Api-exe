@@ -3,7 +3,7 @@ import 'package:api_dados/widgets/cs_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:api_dados/filter/model.dart';
-import 'package:api_dados/database_helper.dart';
+import 'package:api_dados/services/database_helper.dart';
 
 class UserEditPage extends StatefulWidget {
   final PersonModel user;
@@ -17,7 +17,12 @@ class UserEditPage extends StatefulWidget {
 class _UserEditPageState extends State<UserEditPage> {
   final _formKey = GlobalKey<FormState>();
 
-
+  bool valueValidator(String? value) {
+    if (value != null && value.isEmpty) {
+      return true;
+    }
+    return false;
+  }
 
   // Controladores para os campos de texto
   late TextEditingController _nameController;
@@ -28,8 +33,6 @@ class _UserEditPageState extends State<UserEditPage> {
   late TextEditingController _ageController;
 
   late String _gender;
-
-  bool _isFieldChanged = false;
 
   // Valores originais para verificação
   late String _originalName, _originalUsername, _originalEmail, _originalCity, _originalState, _originalGender;
@@ -78,9 +81,6 @@ class _UserEditPageState extends State<UserEditPage> {
 
   Future<void> _saveUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      
-
-
       final updatedUser = PersonModel(
         id: widget.user.id,
         name: _nameController.text,
@@ -190,64 +190,100 @@ class _UserEditPageState extends State<UserEditPage> {
             child: ListView(
               children: <Widget>[
                 CsTextField(
-                    labelText: 'Name',
-                    controller: _nameController,
-                    validator: Validators.validateName,
-                    onChanged: (value) {
-                      setState(() {
-                        _isFieldChanged = true;
-                      });
-                    }),
+                  labelText: 'Name',
+                  controller: _nameController,
+                  validator: (String? value) {
+                    if (valueValidator(value)) {
+                      return 'Insira o nome';
+                    }
+                    return null;
+                  },
+                  onChanged: (text) {
+                    print('Texto que está sendo alterado: $text');
+                    setState(() {});
+                  },
+                ),
                 CsTextField(
                   labelText: 'Username',
                   controller: _usernameController,
-                  validator: Validators.validateUsername,
-                  onChanged: (value) {
-                    setState(() {
-                        _isFieldChanged = true;
-                    });
+                  validator: (String? value) {
+                    if (valueValidator(value)) {
+                      return 'Insira o nome';
+                    }
+                    return null;
+                  },
+                  onChanged: (text) {
+                    print('Texto que está sendo alterado: $text');
+
+                    setState(() {});
                   },
                 ),
                 CsTextField(
                   labelText: 'Email',
                   controller: _emailController,
-                  validator: Validators.validateEmail,
+                  validator: (String? value) {
+                    if (valueValidator(value)) {
+                      return 'Insira o email';
+                    }
+                    return null;
+                  },
                   keyboardType: TextInputType.emailAddress,
-                  onChanged: (value) {
-                    setState(() {
-                        _isFieldChanged = true;
-                    });
+                  onChanged: (text) {
+                    print('Texto que está sendo alterado: $text');
+
+                    setState(() {});
                   },
                 ),
                 CsTextField(
                   labelText: 'City',
                   controller: _cityController,
-                  validator: Validators.validateCity,
-                  onChanged: (value) { setState(() {
-                        _isFieldChanged = true;
-                  });},
+                  validator: (String? value) {
+                    if (valueValidator(value)) {
+                      return 'Insira a cidade';
+                    }
+                    return null;
+                  },
+                  onChanged: (text) {
+                    print('Texto que está sendo alterado: $text');
+
+                    setState(() {});
+                  },
                 ),
                 CsTextField(
                   labelText: 'State',
                   controller: _stateController,
-                  validator: Validators.validateState,
-                  onChanged: (value) {setState(() {
-                        _isFieldChanged = true;
-                  });},
+                  validator: (String? value) {
+                    if (valueValidator(value)) {
+                      return 'Insira o estado';
+                    }
+                    return null;
+                  },
+                  onChanged: (text) {
+                    print('Texto que está sendo alterado: $text');
+
+                    setState(() {});
+                  },
                 ),
                 _buildGenderField(),
                 CsTextField(
                   labelText: 'Age',
                   controller: _ageController,
-                  validator: Validators.validateAge,
+                  validator: (String? value) {
+                    if (valueValidator(value)) {
+                      return 'Insira a idade';
+                    }
+                    return null;
+                  },
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(3),
                   ],
-                  onChanged: (value) { setState(() {
-                        _isFieldChanged = true;
-                  });},
+                  onChanged: (text) {
+                    print('Texto que está sendo alterado: $text');
+
+                    setState(() {});
+                  },
                 ),
                 const SizedBox(height: 20),
                 _saveButton(context),

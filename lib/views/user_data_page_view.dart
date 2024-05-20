@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:api_dados/filter/model.dart';
 import 'package:api_dados/filter/services.dart';
-import 'package:api_dados/database_helper.dart';
+import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/views/user_detail_page_view.dart';
 
 class UserDataPage extends StatefulWidget {
@@ -12,8 +12,10 @@ class UserDataPage extends StatefulWidget {
 class _UserDataPageState extends State<UserDataPage> {
   List<PersonModel> _filteredUsers = [];
   List<PersonModel> _savedUsers = [];
+  List<PersonModel> _allUsers = [];
   bool _isLoading = false;
   int _selectedIndex = 0;
+  TextEditingController _filterController = TextEditingController();
 
   @override
   void initState() {
@@ -21,15 +23,21 @@ class _UserDataPageState extends State<UserDataPage> {
     _loadUserData();
   }
 
+  @override
+  void dispose() {
+    _filterController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadUserData() async {
     setState(() {
       _isLoading = true;
     });
-    fetchRandomUsers().then((value) {
-      setState(() {
-        _filteredUsers = value;
-        _isLoading = false;
-      });
+    final users = await fetchRandomUsers();
+    setState(() {
+      _allUsers = users;
+      _filteredUsers = users;
+      _isLoading = false;
     });
   }
 
@@ -79,13 +87,41 @@ class _UserDataPageState extends State<UserDataPage> {
             ),
             TextButton(
               child: Text('Apagar'),
-              onPressed: () async {
+              onPressed: () {
                 Navigator.of(context).pop(true);
               },
             ),
           ],
         );
       },
+    );
+  }
+
+  void _filterUsers(String query) {
+    final filtered = _allUsers.where((user) {
+      final lowerCaseQuery = query.toLowerCase();
+      final nameMatch = user.name.toLowerCase().contains(lowerCaseQuery);
+      final emailMatch = user.email.toLowerCase().contains(lowerCaseQuery);
+      return nameMatch || emailMatch;
+    }).toList();
+    setState(() {
+      _filteredUsers = filtered;
+    });
+  }
+
+  Widget _buildFilterTextField() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Center(
+        child: TextField(
+          controller: _filterController,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.all(15.0),
+            hintText: 'Pesquisar nome ou email',
+          ),
+          onChanged: _filterUsers,
+        ),
+      ),
     );
   }
 
@@ -127,9 +163,12 @@ class _UserDataPageState extends State<UserDataPage> {
               );
               if (updatedUser != null && updatedUser is PersonModel) {
                 setState(() {
-                  _filteredUsers.removeAt(index); // Remove o usuário atualizado da lista de "Show Data"
-                  if (!_savedUsers.any((user) => user.id == updatedUser.id)) {
-                    _savedUsers.add(updatedUser); // Adiciona o usuário à lista de "Save Data" se não estiver presente
+                  _filteredUsers[index] = updatedUser;
+                  int savedUserIndex = _savedUsers.indexWhere((u) => u.id == updatedUser.id);
+                  if (savedUserIndex != -1) {
+                    _savedUsers[savedUserIndex] = updatedUser;
+                  } else {
+                    _savedUsers.add(updatedUser);
                   }
                 });
               }
@@ -183,10 +222,10 @@ class _UserDataPageState extends State<UserDataPage> {
                     );
                     if (updatedUser != null && updatedUser is PersonModel) {
                       setState(() {
-                        _savedUsers[index] = updatedUser; // Atualiza o usuário na lista de "Save Data"
+                        _savedUsers[index] = updatedUser;
                         int filteredUserIndex = _filteredUsers.indexWhere((u) => u.id == updatedUser.id);
                         if (filteredUserIndex != -1) {
-                          _filteredUsers[filteredUserIndex] = updatedUser; // Atualiza o usuário na lista de "Show Data"
+                          _filteredUsers[filteredUserIndex] = updatedUser;
                         }
                       });
                     }
@@ -200,7 +239,12 @@ class _UserDataPageState extends State<UserDataPage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> _pages = <Widget>[
-      _showUserData(),
+      Column(
+        children: [
+          _buildFilterTextField(),
+          Expanded(child: _showUserData()),
+        ],
+      ),
       _showSavedData(),
     ];
 
