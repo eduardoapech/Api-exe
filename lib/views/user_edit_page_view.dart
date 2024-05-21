@@ -208,7 +208,7 @@ class _UserEditPageState extends State<UserEditPage> {
                   controller: _usernameController,
                   validator: (String? value) {
                     if (valueValidator(value)) {
-                      return 'Insira o nome';
+                      return 'Insira o nome de usuário';
                     }
                     return null;
                   },
@@ -295,3 +295,5 @@ class _UserEditPageState extends State<UserEditPage> {
     );
   }
 }
+
+

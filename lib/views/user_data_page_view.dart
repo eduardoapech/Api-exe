@@ -112,15 +112,13 @@ class _UserDataPageState extends State<UserDataPage> {
   Widget _buildFilterTextField() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Center(
-        child: TextField(
-          controller: _filterController,
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.all(15.0),
-            hintText: 'Pesquisar nome ou email',
-          ),
-          onChanged: _filterUsers,
+      child: TextField(
+        controller: _filterController,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.all(15.0),
+          hintText: 'Pesquisar nome ou email',
         ),
+        onChanged: _filterUsers,
       ),
     );
   }
