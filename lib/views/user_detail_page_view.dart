@@ -116,14 +116,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
     // Verifica se o usuário já existe
     final existingUser = await dbHelper.getUserId(_user.id);
-    int result;
     if (existingUser != null) {
       // Atualiza o usuário existente
-      result = await dbHelper.updateUser(_user);
       message = 'Usuário atualizado com sucesso';
     } else {
       // Insere um novo usuário
-      result = await dbHelper.createUser(_user);
       message = 'Usuário salvo com sucesso';
     }
 

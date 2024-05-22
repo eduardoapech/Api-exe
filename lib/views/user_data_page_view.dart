@@ -100,9 +100,9 @@ class _UserDataPageState extends State<UserDataPage> {
   void _filterUsers(String query) {
     final filtered = _allUsers.where((user) {
       final lowerCaseQuery = query.toLowerCase();
-      final nameMatch = user.name.toLowerCase().contains(lowerCaseQuery);
-      final emailMatch = user.email.toLowerCase().contains(lowerCaseQuery);
-      return nameMatch || emailMatch;
+      final nameMatch = user.name.toLowerCase().startsWith(lowerCaseQuery);
+      
+      return nameMatch;
     }).toList();
     setState(() {
       _filteredUsers = filtered;
@@ -112,13 +112,29 @@ class _UserDataPageState extends State<UserDataPage> {
   Widget _buildFilterTextField() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: _filterController,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.all(15.0),
-          hintText: 'Pesquisar nome ou email',
+      child: Container(
+        width: 500,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(10.0),
         ),
-        onChanged: _filterUsers,
+        child: TextFormField(
+          controller: _filterController,
+          keyboardType: TextInputType.name,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
+            hintText: 'Pesquisar nome',
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+          ),
+          onChanged: _filterUsers,
+        ),
       ),
     );
   }

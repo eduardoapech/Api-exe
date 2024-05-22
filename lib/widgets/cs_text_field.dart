@@ -14,10 +14,16 @@ class CsTextField extends StatelessWidget {
     required this.controller,
     required this.validator,
     this.keyboardType = TextInputType.text,
-    this.inputFormatters, required Null Function(dynamic value) onChanged,
+    this.inputFormatters,
+    required Null Function(dynamic value) onChanged,
   }) : super(key: key);
 
-  InputDecoration _inputDecoration() {
+  InputDecoration _inputDecoration({
+    required String labelText,
+    required Object border,
+    required EdgeInsets contentPadding,
+    
+  }) {
     return InputDecoration(
       labelText: labelText,
       border: OutlineInputBorder(),
@@ -31,7 +37,11 @@ class CsTextField extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
         controller: controller,
-        decoration: _inputDecoration(),
+        decoration: _inputDecoration(
+          labelText: labelText,
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.all(15.0),
+        ),
         validator: validator,
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
