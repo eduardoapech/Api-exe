@@ -62,13 +62,7 @@ class _UserEditPageState extends State<UserEditPage> {
 
   void _checkForModifications() {
     setState(() {
-      hasModifications = _nameController.text != _originalName ||
-                         _usernameController.text != _originalUsername ||
-                         _emailController.text != _originalEmail ||
-                         _cityController.text != _originalCity ||
-                         _stateController.text != _originalState ||
-                         _gender != _originalGender ||
-                         int.parse(_ageController.text) != _originalAge;
+      hasModifications = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
     });
   }
 
@@ -118,7 +112,8 @@ class _UserEditPageState extends State<UserEditPage> {
               ),
             ],
           ),
-        ) ?? false;
+        ) ??
+        false;
   }
 
   Future<void> _saveUser(BuildContext context) async {
@@ -169,10 +164,7 @@ class _UserEditPageState extends State<UserEditPage> {
               value: 'male',
               groupValue: _gender,
               onChanged: (value) {
-                setState(() {
-                  _gender = value!;
-                  _onFieldChanged('gender', value);
-                });
+                hasModifications = true;
               },
             ),
             Text('Male'),
@@ -234,96 +226,86 @@ class _UserEditPageState extends State<UserEditPage> {
             child: ListView(
               children: <Widget>[
                 CsTextField(
-                  labelText: 'Name',
-                  controller: _nameController,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Insira o nome';
-                    }
-                    return null;
-                  },
-                   onChanged: (newText) { setState((){ 
-                    hasModifications = newText;
-                    
-                  });}
-                ),
+                    labelText: 'Name',
+                    controller: _nameController,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Insira o nome';
+                      }
+                      return null;
+                    },
+                    onChanged: (newText) {
+                      hasModifications = true;
+                    }),
                 CsTextField(
-                  labelText: 'Username',
-                  controller: _usernameController,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Insira o nome de usuário';
-                    }
-                    return null;
-                  },
-                   onChanged: (newText) { setState((){ 
-                    hasModifications = newText;
-                    
-                  });}
-                ),
+                    labelText: 'Username',
+                    controller: _usernameController,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Insira o nome de usuário';
+                      }
+                      return null;
+                    },
+                    onChanged: (newText) {
+                      hasModifications = true;
+                    }),
                 CsTextField(
-                  labelText: 'Email',
-                  controller: _emailController,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Insira o email';
-                    }
-                    return null;
-                  },
-                  keyboardType: TextInputType.emailAddress,
-                   onChanged: (newText) { setState((){ 
-                    hasModifications = newText;
-                    
-                  });}
-                ),
+                    labelText: 'Email',
+                    controller: _emailController,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Insira o email';
+                      }
+                      return null;
+                    },
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (newText) {
+                      hasModifications = true;
+                    }),
                 CsTextField(
-                  labelText: 'City',
-                  controller: _cityController,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Insira a cidade';
-                    }
-                    return null;
-                  },
-                   onChanged: (newText) { setState((){ 
-                    hasModifications = newText;
-                    
-                  });}
-                ),
+                    labelText: 'City',
+                    controller: _cityController,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Insira a cidade';
+                      }
+                      return null;
+                    },
+                    onChanged: (newText) {
+                      hasModifications = true;
+                    }),
                 CsTextField(
-                  labelText: 'State',
-                  controller: _stateController,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Insira o estado';
-                    }
-                    return null;
-                  },
-                   onChanged: (newText) { setState((){ 
-                    hasModifications = newText;
-                    
-                  });}
-                ),
+                    labelText: 'State',
+                    controller: _stateController,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Insira o estado';
+                      }
+                      return null;
+                    },
+                    onChanged: (newText) {
+                      hasModifications = true;
+                    }),
                 _buildGenderField(),
                 CsTextField(
-                  labelText: 'Age',
-                  controller: _ageController,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Insira a idade';
-                    }
-                    return null;
-                  },
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(3),
-                  ],
-                  onChanged: (newText) { setState((){ 
-                    hasModifications = newText;
-                    
-                  });}
-                ),
+                    labelText: 'Age',
+                    controller: _ageController,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Insira a idade';
+                      }
+                      return null;
+                    },
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(3),
+                    ],
+                    onChanged: (newText) {
+                      setState(() {
+                        hasModifications = newText;
+                      });
+                    }),
                 const SizedBox(height: 20),
                 _saveButton(context),
               ],
