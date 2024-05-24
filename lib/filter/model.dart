@@ -1,13 +1,13 @@
 class PersonModel {
   final String id;
-  final String name;
-  final String username;
-  final String email;
+  late final String name;
+  late final String username;
+  late final String email;
   final String avatarUrl;
-  final String city;
-  final String state;
-  final String gender;
-  final int age;
+  late final String city;
+  late final String state;
+  late final String gender;
+  late final int age;
 
   PersonModel({
     required this.id,

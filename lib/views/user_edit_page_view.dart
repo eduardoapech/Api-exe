@@ -1,9 +1,8 @@
-import 'package:api_dados/validator/validators.dart';
-import 'package:api_dados/widgets/cs_text_field.dart';
+import 'package:api_dados/services/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:api_dados/filter/model.dart';
-import 'package:api_dados/services/database_helper.dart';
+import 'package:api_dados/widgets/cs_text_field.dart';
 
 class UserEditPage extends StatefulWidget {
   final PersonModel user;
@@ -17,14 +16,9 @@ class UserEditPage extends StatefulWidget {
 class _UserEditPageState extends State<UserEditPage> {
   final _formKey = GlobalKey<FormState>();
 
-  bool valueValidator(String? value) {
-    if (value != null && value.isEmpty) {
-      return true;
-    }
-    return false;
-  }
+  bool hasModifications = false;
+  late PersonModel _editedUser;
 
-  // Controladores para os campos de texto
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
@@ -34,14 +28,13 @@ class _UserEditPageState extends State<UserEditPage> {
 
   late String _gender;
 
-  // Valores originais para verificação
   late String _originalName, _originalUsername, _originalEmail, _originalCity, _originalState, _originalGender;
   late int _originalAge;
 
   @override
   void initState() {
     super.initState();
-    _gender = _originalGender = widget.user.gender;
+    _editedUser = widget.user;
 
     _nameController = TextEditingController(text: widget.user.name);
     _usernameController = TextEditingController(text: widget.user.username);
@@ -55,7 +48,57 @@ class _UserEditPageState extends State<UserEditPage> {
     _originalEmail = widget.user.email;
     _originalCity = widget.user.city;
     _originalState = widget.user.state;
+    _originalGender = widget.user.gender;
     _originalAge = widget.user.age;
+    _gender = widget.user.gender;
+
+    _nameController.addListener(_checkForModifications);
+    _usernameController.addListener(_checkForModifications);
+    _emailController.addListener(_checkForModifications);
+    _cityController.addListener(_checkForModifications);
+    _stateController.addListener(_checkForModifications);
+    _ageController.addListener(_checkForModifications);
+  }
+
+  void _checkForModifications() {
+    setState(() {
+      hasModifications = _nameController.text != _originalName ||
+                         _usernameController.text != _originalUsername ||
+                         _emailController.text != _originalEmail ||
+                         _cityController.text != _originalCity ||
+                         _stateController.text != _originalState ||
+                         _gender != _originalGender ||
+                         int.parse(_ageController.text) != _originalAge;
+    });
+  }
+
+  void _onFieldChanged(String field, String value) {
+    setState(() {
+      switch (field) {
+        case 'name':
+          _editedUser.name = value;
+          break;
+        case 'username':
+          _editedUser.username = value;
+          break;
+        case 'email':
+          _editedUser.email = value;
+          break;
+        case 'city':
+          _editedUser.city = value;
+          break;
+        case 'state':
+          _editedUser.state = value;
+          break;
+        case 'age':
+          _editedUser.age = int.parse(value);
+          break;
+        case 'gender':
+          _editedUser.gender = value;
+          break;
+      }
+      hasModifications = true;
+    });
   }
 
   Future<bool> _showConfirmationDialog(String message) async {
@@ -66,21 +109,20 @@ class _UserEditPageState extends State<UserEditPage> {
             content: Text(message),
             actions: <Widget>[
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false), // Retorna false para cancelar a ação
+                onPressed: () => Navigator.of(context).pop(false),
                 child: Text('Não'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(true), // Retorna true para confirmar a ação
+                onPressed: () => Navigator.of(context).pop(true),
                 child: Text('Sim'),
               ),
             ],
           ),
-        ) ??
-        false;
+        ) ?? false;
   }
 
   Future<void> _saveUser(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && hasModifications) {
       final updatedUser = PersonModel(
         id: widget.user.id,
         name: _nameController.text,
@@ -95,13 +137,13 @@ class _UserEditPageState extends State<UserEditPage> {
       final dbHelper = DatabaseHelper.instance;
       await dbHelper.updateUser(updatedUser);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cadastro atualizado com sucesso')));
-      Navigator.pop(context, updatedUser); // Retorna o usuário atualizado
+      Navigator.pop(context, updatedUser);
     }
   }
 
   Widget _saveButton(BuildContext context) {
     return TextButton(
-      onPressed: () => _saveUser(context),
+      onPressed: hasModifications ? () => _saveUser(context) : null,
       style: TextButton.styleFrom(
         foregroundColor: Colors.white,
         backgroundColor: Color.fromARGB(255, 40, 51, 59),
@@ -121,7 +163,7 @@ class _UserEditPageState extends State<UserEditPage> {
           style: TextStyle(fontSize: 16, color: Colors.grey[700]),
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center, // Centraliza os botões de rádio
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Radio<String>(
               value: 'male',
@@ -129,6 +171,7 @@ class _UserEditPageState extends State<UserEditPage> {
               onChanged: (value) {
                 setState(() {
                   _gender = value!;
+                  _onFieldChanged('gender', value);
                 });
               },
             ),
@@ -139,6 +182,7 @@ class _UserEditPageState extends State<UserEditPage> {
               onChanged: (value) {
                 setState(() {
                   _gender = value!;
+                  _onFieldChanged('gender', value);
                 });
               },
             ),
@@ -158,9 +202,7 @@ class _UserEditPageState extends State<UserEditPage> {
   }
 
   Future<void> _handleBackPress() async {
-    bool isEdited = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
-
-    if (isEdited) {
+    if (hasModifications) {
       bool confirmExit = await _showConfirmationDialog('Tem certeza de que deseja sair sem salvar as alterações?');
       if (confirmExit) {
         Navigator.of(context).pop();
@@ -172,9 +214,11 @@ class _UserEditPageState extends State<UserEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {},
+    return WillPopScope(
+      onWillPop: () async {
+        await _handleBackPress();
+        return false;
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text('Editar Usuário'),
@@ -193,83 +237,79 @@ class _UserEditPageState extends State<UserEditPage> {
                   labelText: 'Name',
                   controller: _nameController,
                   validator: (String? value) {
-                    if (valueValidator(value)) {
+                    if (value == null || value.isEmpty) {
                       return 'Insira o nome';
                     }
                     return null;
                   },
-                  onChanged: (text) {
-                    print('Texto que está sendo alterado: $text');
-                    setState(() {});
-                  },
+                   onChanged: (newText) { setState((){ 
+                    hasModifications = newText;
+                    
+                  });}
                 ),
                 CsTextField(
                   labelText: 'Username',
                   controller: _usernameController,
                   validator: (String? value) {
-                    if (valueValidator(value)) {
+                    if (value == null || value.isEmpty) {
                       return 'Insira o nome de usuário';
                     }
                     return null;
                   },
-                  onChanged: (text) {
-                    print('Texto que está sendo alterado: $text');
-
-                    setState(() {});
-                  },
+                   onChanged: (newText) { setState((){ 
+                    hasModifications = newText;
+                    
+                  });}
                 ),
                 CsTextField(
                   labelText: 'Email',
                   controller: _emailController,
                   validator: (String? value) {
-                    if (valueValidator(value)) {
+                    if (value == null || value.isEmpty) {
                       return 'Insira o email';
                     }
                     return null;
                   },
                   keyboardType: TextInputType.emailAddress,
-                  onChanged: (text) {
-                    print('Texto que está sendo alterado: $text');
-
-                    setState(() {});
-                  },
+                   onChanged: (newText) { setState((){ 
+                    hasModifications = newText;
+                    
+                  });}
                 ),
                 CsTextField(
                   labelText: 'City',
                   controller: _cityController,
                   validator: (String? value) {
-                    if (valueValidator(value)) {
+                    if (value == null || value.isEmpty) {
                       return 'Insira a cidade';
                     }
                     return null;
                   },
-                  onChanged: (text) {
-                    print('Texto que está sendo alterado: $text');
-
-                    setState(() {});
-                  },
+                   onChanged: (newText) { setState((){ 
+                    hasModifications = newText;
+                    
+                  });}
                 ),
                 CsTextField(
                   labelText: 'State',
                   controller: _stateController,
                   validator: (String? value) {
-                    if (valueValidator(value)) {
+                    if (value == null || value.isEmpty) {
                       return 'Insira o estado';
                     }
                     return null;
                   },
-                  onChanged: (text) {
-                    print('Texto que está sendo alterado: $text');
-
-                    setState(() {});
-                  },
+                   onChanged: (newText) { setState((){ 
+                    hasModifications = newText;
+                    
+                  });}
                 ),
                 _buildGenderField(),
                 CsTextField(
                   labelText: 'Age',
                   controller: _ageController,
                   validator: (String? value) {
-                    if (valueValidator(value)) {
+                    if (value == null || value.isEmpty) {
                       return 'Insira a idade';
                     }
                     return null;
@@ -279,11 +319,10 @@ class _UserEditPageState extends State<UserEditPage> {
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(3),
                   ],
-                  onChanged: (text) {
-                    print('Texto que está sendo alterado: $text');
-
-                    setState(() {});
-                  },
+                  onChanged: (newText) { setState((){ 
+                    hasModifications = newText;
+                    
+                  });}
                 ),
                 const SizedBox(height: 20),
                 _saveButton(context),
@@ -295,5 +334,3 @@ class _UserEditPageState extends State<UserEditPage> {
     );
   }
 }
-
-
