@@ -28,7 +28,12 @@ class _UserEditPageState extends State<UserEditPage> {
 
   late String _gender;
 
-  late String _originalName, _originalUsername, _originalEmail, _originalCity, _originalState, _originalGender;
+  late String _originalName,
+      _originalUsername,
+      _originalEmail,
+      _originalCity,
+      _originalState,
+      _originalGender;
   late int _originalAge;
 
   @override
@@ -62,7 +67,13 @@ class _UserEditPageState extends State<UserEditPage> {
 
   void _checkForModifications() {
     setState(() {
-      hasModifications = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || int.parse(_ageController.text) != _originalAge;
+      hasModifications = _nameController.text != _originalName ||
+          _usernameController.text != _originalUsername ||
+          _emailController.text != _originalEmail ||
+          _cityController.text != _originalCity ||
+          _stateController.text != _originalState ||
+          _gender != _originalGender ||
+          int.parse(_ageController.text) != _originalAge;
     });
   }
 
@@ -131,7 +142,8 @@ class _UserEditPageState extends State<UserEditPage> {
       );
       final dbHelper = DatabaseHelper.instance;
       await dbHelper.updateUser(updatedUser);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cadastro atualizado com sucesso')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cadastro atualizado com sucesso')));
       Navigator.pop(context, updatedUser);
     }
   }
@@ -195,7 +207,8 @@ class _UserEditPageState extends State<UserEditPage> {
 
   Future<void> _handleBackPress() async {
     if (hasModifications) {
-      bool confirmExit = await _showConfirmationDialog('Tem certeza de que deseja sair sem salvar as alterações?');
+      bool confirmExit = await _showConfirmationDialog(
+          'Tem certeza de que deseja sair sem salvar as alterações?');
       if (confirmExit) {
         Navigator.of(context).pop();
       }
@@ -206,10 +219,10 @@ class _UserEditPageState extends State<UserEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
         await _handleBackPress();
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
