@@ -1,7 +1,7 @@
 import 'package:api_dados/services/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:api_dados/filter/model.dart';
+import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/widgets/cs_text_field.dart';
 
 class UserEditPage extends StatefulWidget {
@@ -16,9 +16,10 @@ class UserEditPage extends StatefulWidget {
 class _UserEditPageState extends State<UserEditPage> {
   final _formKey = GlobalKey<FormState>();
 
-  bool hasModifications = false;
+  bool hasModifications = false; // Indica se houve modificações no formulário
   late PersonModel _editedUser;
 
+  // Controladores para os campos de texto
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
@@ -26,14 +27,10 @@ class _UserEditPageState extends State<UserEditPage> {
   late TextEditingController _stateController;
   late TextEditingController _ageController;
 
-  late String _gender;
+  String _gender = ''; // Inicializa o gênero como string vazia
 
-  late String _originalName,
-      _originalUsername,
-      _originalEmail,
-      _originalCity,
-      _originalState,
-      _originalGender;
+  // Variáveis para armazenar os valores originais dos campos
+  late String _originalName, _originalUsername, _originalEmail, _originalCity, _originalState, _originalGender;
   late int _originalAge;
 
   @override
@@ -41,6 +38,7 @@ class _UserEditPageState extends State<UserEditPage> {
     super.initState();
     _editedUser = widget.user;
 
+    // Inicializa os controladores com os valores do usuário
     _nameController = TextEditingController(text: widget.user.name);
     _usernameController = TextEditingController(text: widget.user.username);
     _emailController = TextEditingController(text: widget.user.email);
@@ -55,8 +53,9 @@ class _UserEditPageState extends State<UserEditPage> {
     _originalState = widget.user.state;
     _originalGender = widget.user.gender;
     _originalAge = widget.user.age;
-    _gender = widget.user.gender;
+    _gender = widget.user.gender; // Inicializa o gênero com o valor do usuário
 
+    // Adiciona listeners para verificar modificações nos campos
     _nameController.addListener(_checkForModifications);
     _usernameController.addListener(_checkForModifications);
     _emailController.addListener(_checkForModifications);
@@ -67,16 +66,17 @@ class _UserEditPageState extends State<UserEditPage> {
 
   void _checkForModifications() {
     setState(() {
-      hasModifications = _nameController.text != _originalName ||
-          _usernameController.text != _originalUsername ||
-          _emailController.text != _originalEmail ||
-          _cityController.text != _originalCity ||
-          _stateController.text != _originalState ||
-          _gender != _originalGender ||
-          int.parse(_ageController.text) != _originalAge;
+      hasModifications = _nameController.text != _originalName || 
+                         _usernameController.text != _originalUsername || 
+                         _emailController.text != _originalEmail || 
+                         _cityController.text != _originalCity || 
+                         _stateController.text != _originalState || 
+                         _gender != _originalGender || 
+                         _ageController.text != _originalAge.toString();
     });
   }
 
+  // Atualiza o campo do usuário quando há modificações
   void _onFieldChanged(String field, String value) {
     setState(() {
       switch (field) {
@@ -96,7 +96,7 @@ class _UserEditPageState extends State<UserEditPage> {
           _editedUser.state = value;
           break;
         case 'age':
-          _editedUser.age = int.parse(value);
+          _editedUser.age = int.tryParse(value) ?? _originalAge; // Lida com formato de número inválido
           break;
         case 'gender':
           _editedUser.gender = value;
@@ -106,27 +106,32 @@ class _UserEditPageState extends State<UserEditPage> {
     });
   }
 
-  Future<bool> _showConfirmationDialog(String message) async {
-    return await showDialog(
+  // Mostra um diálogo de confirmação
+  Future<void> _showConfirmationDialog(String message) async {
+    var response = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: Text('Confirmação'),
             content: Text(message),
             actions: <Widget>[
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () => Navigator.of(context).pop(false), // Retorna false para cancelar a ação
                 child: Text('Não'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () => Navigator.of(context).pop(true), // Retorna true para confirmar a ação
                 child: Text('Sim'),
               ),
             ],
           ),
         ) ??
         false;
+    if (response) {
+      Navigator.pop(context);
+    }
   }
 
+  // Salva o usuário atualizado no banco de dados
   Future<void> _saveUser(BuildContext context) async {
     if (_formKey.currentState!.validate() && hasModifications) {
       final updatedUser = PersonModel(
@@ -138,99 +143,80 @@ class _UserEditPageState extends State<UserEditPage> {
         city: _cityController.text,
         state: _stateController.text,
         gender: _gender,
-        age: int.parse(_ageController.text),
+        age: int.tryParse(_ageController.text) ?? _originalAge, // Lida com formato de número inválido
       );
       final dbHelper = DatabaseHelper.instance;
       await dbHelper.updateUser(updatedUser);
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cadastro atualizado com sucesso')));
-      Navigator.pop(context, updatedUser);
+        SnackBar(content: Text('Cadastro atualizado com sucesso')),
+      );
+      Navigator.of(context).pop(updatedUser); // Use Navigator.of(context).pop para garantir que a navegação ocorra corretamente
     }
   }
 
+  // Botão de salvar usuário
   Widget _saveButton(BuildContext context) {
     return TextButton(
       onPressed: hasModifications ? () => _saveUser(context) : null,
       style: TextButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Color.fromARGB(255, 40, 51, 59),
-        disabledForegroundColor: Colors.grey.withOpacity(0.38),
-        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+        foregroundColor: Colors.white, // Cor do texto do botão quando habilitado
+        backgroundColor: Color.fromARGB(255, 40, 51, 59), // Cor de fundo do botão quando habilitado
+        disabledForegroundColor: Colors.grey.withOpacity(0.38), // Cor do texto do botão quando desabilitado
+        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0), // Padding do botão
       ),
-      child: const Text('Salvar Usuário'),
+      child: const Text('Salvar Usuário'), // Texto do botão
     );
   }
 
+  // Constrói o campo de seleção de gênero usando DropdownButtonFormField
   Widget _buildGenderField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'Gender',
-          style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+    return DropdownButtonFormField<String>(
+      value: _gender.isNotEmpty ? _gender : null,
+      items: [
+        DropdownMenuItem(
+          value: '',
+          child: Text('Selecione o gênero'),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Radio<String>(
-              value: 'male',
-              groupValue: _gender,
-              onChanged: (value) {
-                hasModifications = true;
-              },
-            ),
-            Text('Male'),
-            Radio<String>(
-              value: 'female',
-              groupValue: _gender,
-              onChanged: (value) {
-                setState(() {
-                  _gender = value!;
-                  _onFieldChanged('gender', value);
-                });
-              },
-            ),
-            Text('Female'),
-          ],
+        DropdownMenuItem(
+          value: 'male',
+          child: Text('Male'),
         ),
-        if (_gender.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-            child: Text(
-              'Por favor, selecione um gênero',
-              style: TextStyle(color: Colors.red, fontSize: 12),
-            ),
-          ),
+        DropdownMenuItem(
+          value: 'female',
+          child: Text('Female'),
+        ),
       ],
+      onChanged: (value) {
+        setState(() {
+          _gender = value!;
+          _onFieldChanged('gender', value);
+        });
+      },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Gênero',
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor, selecione um gênero';
+        }
+        return null;
+      },
     );
-  }
-
-  Future<void> _handleBackPress() async {
-    if (hasModifications) {
-      bool confirmExit = await _showConfirmationDialog(
-          'Tem certeza de que deseja sair sem salvar as alterações?');
-      if (confirmExit) {
-        Navigator.of(context).pop();
-      }
-    } else {
-      Navigator.of(context).pop();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        await _handleBackPress();
+      canPop: !hasModifications,
+      onPopInvoked: (bool didPop) {
+        if (didPop) return;
+
+        _showConfirmationDialog('Tem certeza de que deseja atualizar o usuário?');
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text('Editar Usuário'),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: _handleBackPress,
-          ),
         ),
         body: Padding(
           padding: EdgeInsets.all(16.0),
@@ -239,86 +225,92 @@ class _UserEditPageState extends State<UserEditPage> {
             child: ListView(
               children: <Widget>[
                 CsTextField(
-                    labelText: 'Name',
-                    controller: _nameController,
-                    validator: (String? value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Insira o nome';
-                      }
-                      return null;
-                    },
-                    onChanged: (newText) {
-                      hasModifications = true;
-                    }),
+                  labelText: 'Name',
+                  controller: _nameController,
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Insira o nome';
+                    }
+                    return null;
+                  },
+                  onChanged: (_) {
+                    hasModifications = true;
+                  },
+                ),
                 CsTextField(
-                    labelText: 'Username',
-                    controller: _usernameController,
-                    validator: (String? value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Insira o nome de usuário';
-                      }
-                      return null;
-                    },
-                    onChanged: (newText) {
-                      hasModifications = true;
-                    }),
+                  labelText: 'Username',
+                  controller: _usernameController,
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Insira o nome de usuário';
+                    }
+                    return null;
+                  },
+                  onChanged: (_) {
+                    hasModifications = true;
+                  },
+                ),
                 CsTextField(
-                    labelText: 'Email',
-                    controller: _emailController,
-                    validator: (String? value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Insira o email';
-                      }
-                      return null;
-                    },
-                    keyboardType: TextInputType.emailAddress,
-                    onChanged: (newText) {
-                      hasModifications = true;
-                    }),
+                  labelText: 'Email',
+                  controller: _emailController,
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Insira o email';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (_) {
+                    hasModifications = true;
+                  },
+                ),
                 CsTextField(
-                    labelText: 'City',
-                    controller: _cityController,
-                    validator: (String? value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Insira a cidade';
-                      }
-                      return null;
-                    },
-                    onChanged: (newText) {
-                      hasModifications = true;
-                    }),
+                  labelText: 'City',
+                  controller: _cityController,
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Insira a cidade';
+                    }
+                    return null;
+                  },
+                  onChanged: (_) {
+                    hasModifications = true;
+                  },
+                ),
                 CsTextField(
-                    labelText: 'State',
-                    controller: _stateController,
-                    validator: (String? value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Insira o estado';
-                      }
-                      return null;
-                    },
-                    onChanged: (newText) {
-                      hasModifications = true;
-                    }),
+                  labelText: 'State',
+                  controller: _stateController,
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Insira o estado';
+                    }
+                    return null;
+                  },
+                  onChanged: (_) {
+                    hasModifications = true;
+                  },
+                ),
                 _buildGenderField(),
                 CsTextField(
-                    labelText: 'Age',
-                    controller: _ageController,
-                    validator: (String? value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Insira a idade';
-                      }
-                      return null;
-                    },
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(3),
-                    ],
-                    onChanged: (newText) {
-                      setState(() {
-                        hasModifications = newText;
-                      });
-                    }),
+                  labelText: 'Age',
+                  controller: _ageController,
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Insira a idade';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
+                  onChanged: (newText) {
+                    setState(() {
+                      hasModifications = true;
+                    });
+                  },
+                ),
                 const SizedBox(height: 20),
                 _saveButton(context),
               ],

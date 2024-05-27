@@ -1,80 +1,118 @@
 import 'package:flutter/material.dart';
-import 'package:api_dados/filter/model.dart';
-import 'package:api_dados/filter/services.dart';
+import 'package:api_dados/models/filter_model.dart';
+import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/services/database_helper.dart';
+import 'package:api_dados/filter/services.dart';
 import 'package:api_dados/views/user_detail_page_view.dart';
 
+// Declaração da classe UserDataPage como um StatefulWidget
 class UserDataPage extends StatefulWidget {
   @override
   _UserDataPageState createState() => _UserDataPageState();
 }
 
+// Estado associado ao UserDataPage
 class _UserDataPageState extends State<UserDataPage> {
+  // Listas para armazenar usuários filtrados e salvos
   List<PersonModel> _filteredUsers = [];
   List<PersonModel> _savedUsers = [];
-  List<PersonModel> _allUsers = [];
+  
+  // Variável para controlar o estado de carregamento
   bool _isLoading = false;
+  
+  // Índice da aba selecionada no BottomNavigationBar
   int _selectedIndex = 0;
-  TextEditingController _filterController = TextEditingController();
+
+  // Controladores de texto para os campos de filtro
+  final _filterController = TextEditingController();
+  final _minAgeController = TextEditingController();
+  final _maxAgeController = TextEditingController();
+  
+  // Gênero selecionado para filtro
+  String _selectedGender = '';
+  
+  // Instância do modelo de filtro
+  final filtroPessoa = FilterModel();
 
   @override
   void initState() {
     super.initState();
+    // Carregar dados de usuários aleatórios ao inicializar o estado
     _loadUserData();
   }
 
   @override
   void dispose() {
+    // Liberar os controladores de texto ao destruir o estado
     _filterController.dispose();
+    _minAgeController.dispose();
+    _maxAgeController.dispose();
     super.dispose();
   }
 
+  // Método para carregar usuários aleatórios
   Future<void> _loadUserData() async {
     setState(() {
-      _isLoading = true;
+      _isLoading = true; // Definir estado de carregamento como verdadeiro
     });
-    final users = await fetchRandomUsers();
+    final users = await fetchRandomUsers(); // Buscar usuários aleatórios
     setState(() {
-      _allUsers = users;
-      _filteredUsers = users;
-      _isLoading = false;
+      _filteredUsers = users; // Atualizar a lista de usuários filtrados
+      _isLoading = false; // Definir estado de carregamento como falso
     });
   }
 
+  // Método para carregar usuários salvos aplicando filtros
   Future<void> _loadSavedUsers() async {
-    final dbHelper = DatabaseHelper.instance;
-    final users = await dbHelper.getAllUsers();
     setState(() {
-      _savedUsers = users;
+      _isLoading = true; // Definir estado de carregamento como verdadeiro
+    });
+
+    // Configurar filtros com base nos valores dos controladores de texto e no gênero selecionado
+    filtroPessoa.name = _filterController.text;
+    filtroPessoa.gender = _selectedGender;
+    filtroPessoa.minAge = int.tryParse(_minAgeController.text);
+    filtroPessoa.maxAge = int.tryParse(_maxAgeController.text);
+
+    // Buscar usuários do banco de dados aplicando os filtros
+    final dbHelper = DatabaseHelper.instance;
+    final users = await dbHelper.getAllUsers(filtroPessoa);
+
+    setState(() {
+      _savedUsers = users; // Atualizar a lista de usuários salvos
+      _isLoading = false; // Definir estado de carregamento como falso
     });
   }
 
+  // Método para alternar entre as abas no BottomNavigationBar
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      _selectedIndex = index; // Atualizar o índice da aba selecionada
       if (index == 1) {
-        _loadSavedUsers();
+        _loadSavedUsers(); // Carregar usuários salvos ao selecionar a aba correspondente
       }
     });
   }
 
+  // Método para deletar um usuário do banco de dados
   Future<void> _deleteUser(String id) async {
     final dbHelper = DatabaseHelper.instance;
-    await dbHelper.deleteUser(id);
-    await _loadSavedUsers();
+    await dbHelper.deleteUser(id); // Deletar usuário pelo ID
+    await _loadSavedUsers(); // Recarregar a lista de usuários salvos
   }
 
+  // Diálogo de confirmação para deletar um usuário
   Future<bool?> showDeleteConfirmationDialog(BuildContext context, String userId, String userName) {
     return showDialog<bool>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: false, // Impedir fechamento ao clicar fora do diálogo
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Confirmar exclusão'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Tem certeza que deseja excluir $userName?'),
+                Text('Tem certeza que deseja excluir $userName?'), // Mensagem de confirmação
               ],
             ),
           ),
@@ -82,13 +120,13 @@ class _UserDataPageState extends State<UserDataPage> {
             TextButton(
               child: Text('Cancelar'),
               onPressed: () {
-                Navigator.of(context).pop(false);
+                Navigator.of(context).pop(false); // Fechar diálogo sem deletar
               },
             ),
             TextButton(
               child: Text('Apagar'),
               onPressed: () {
-                Navigator.of(context).pop(true);
+                Navigator.of(context).pop(true); // Fechar diálogo e confirmar exclusão
               },
             ),
           ],
@@ -97,48 +135,100 @@ class _UserDataPageState extends State<UserDataPage> {
     );
   }
 
-  void _filterUsers(String query) {
-    final filtered = _allUsers.where((user) {
-      final lowerCaseQuery = query.toLowerCase();
-      final nameMatch = user.name.toLowerCase().startsWith(lowerCaseQuery);
-      
-      return nameMatch;
-    }).toList();
+  // Método para salvar um usuário no banco de dados
+  Future<void> _saveUser(PersonModel user) async {
+    final dbHelper = DatabaseHelper.instance;
+    await dbHelper.createUser(user); // Salvar usuário no banco de dados
     setState(() {
-      _filteredUsers = filtered;
+      _filteredUsers.removeWhere((u) => u.id == user.id); // Remover usuário da lista de filtrados
+      _savedUsers.add(user); // Adicionar usuário à lista de salvos
     });
   }
 
-  Widget _buildFilterTextField() {
+  // Constrói os campos de filtro na aba de dados salvos
+  Widget _buildFilterFields() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Container(
-        width: 500,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: TextFormField(
-          controller: _filterController,
-          keyboardType: TextInputType.name,
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
-            hintText: 'Pesquisar nome',
-            border: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.black),
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.red),
-              borderRadius: BorderRadius.circular(10.0),
+      child: Column(
+        children: [
+          // Campo de texto para pesquisar pelo nome
+          TextField(
+            controller: _filterController,
+            decoration: const InputDecoration(
+              labelText: 'Pesquisar nome',
+              border: OutlineInputBorder(),
             ),
           ),
-          onChanged: _filterUsers,
-        ),
+          const SizedBox(height: 8.0),
+          // Dropdown para selecionar o gênero
+          DropdownButtonFormField<String>(
+            value: _selectedGender.isNotEmpty ? _selectedGender : null,
+            items: const [
+              DropdownMenuItem(
+                value: '',
+                child: Text('Selecione o gênero'),
+              ),
+              DropdownMenuItem(
+                value: 'male',
+                child: Text('Male'),
+              ),
+              DropdownMenuItem(
+                value: 'female',
+                child: Text('Female'),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedGender = value ?? '';
+              });
+            },
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Gênero',
+            ),
+          ),
+          SizedBox(height: 8.0),
+          // Campos de texto para idade mínima e máxima
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _minAgeController,
+                  decoration: InputDecoration(
+                    labelText: 'Idade mínima',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              SizedBox(width: 8.0),
+              Expanded(
+                child: TextField(
+                  controller: _maxAgeController,
+                  decoration: InputDecoration(
+                    labelText: 'Idade máxima',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.0),
+          // Botão para aplicar filtros
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red), //Cor do texto do botão
+            onPressed: _loadSavedUsers,
+            child: Text('Aplicar Filtros', ),
+
+            
+          ),
+        ],
       ),
     );
   }
 
+  // Constrói a lista de usuários aleatórios ou exibe um indicador de progresso
   Widget _showUserData() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator());
@@ -160,31 +250,22 @@ class _UserDataPageState extends State<UserDataPage> {
       return ListView.builder(
         itemCount: _filteredUsers.length,
         itemBuilder: (context, index) {
+          final user = _filteredUsers[index];
           return ListTile(
             leading: CircleAvatar(
-              backgroundImage: NetworkImage(_filteredUsers[index].avatarUrl),
+              backgroundImage: NetworkImage(user.avatarUrl),
               radius: 25,
             ),
-            title: Text(_filteredUsers[index].name),
-            subtitle: Text('${_filteredUsers[index].email}, ${_filteredUsers[index].city},'
-                '${_filteredUsers[index].state}, ${_filteredUsers[index].gender},'
-                ' Age: ${_filteredUsers[index].age}'),
+            title: Text(user.name),
+            subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
             onTap: () async {
               final updatedUser = await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => UserDetailPage(user: _filteredUsers[index], showSaveButton: true),
+                  builder: (context) => UserDetailPage(user: user, showSaveButton: true),
                 ),
               );
               if (updatedUser != null && updatedUser is PersonModel) {
-                setState(() {
-                  _filteredUsers[index] = updatedUser;
-                  int savedUserIndex = _savedUsers.indexWhere((u) => u.id == updatedUser.id);
-                  if (savedUserIndex != -1) {
-                    _savedUsers[savedUserIndex] = updatedUser;
-                  } else {
-                    _savedUsers.add(updatedUser);
-                  }
-                });
+                await _saveUser(updatedUser); // Salvar usuário ao retornar da página de detalhes
               }
             },
           );
@@ -193,99 +274,113 @@ class _UserDataPageState extends State<UserDataPage> {
     }
   }
 
+  // Constrói a lista de usuários salvos ou exibe um indicador de progresso
   Widget _showSavedData() {
-    return _savedUsers.isEmpty
-        ? Center(child: Text('Nenhum usuário salvo'))
-        : ListView.builder(
-            itemCount: _savedUsers.length,
-            itemBuilder: (context, index) {
-              final user = _savedUsers[index];
-              return Dismissible(
-                key: Key(user.id),
-                direction: DismissDirection.endToStart,
-                confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
-                onDismissed: (direction) async {
-                  await _deleteUser(user.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${user.name} foi excluído'),
-                    ),
-                  );
-                },
-                background: Container(
-                  color: Colors.red,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(user.avatarUrl),
-                    radius: 25,
-                  ),
-                  title: Text(user.name),
-                  subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
-                  onTap: () async {
-                    final updatedUser = await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => UserDetailPage(user: user, showSaveButton: true),
-                      ),
-                    );
-                    if (updatedUser != null && updatedUser is PersonModel) {
-                      setState(() {
-                        _savedUsers[index] = updatedUser;
-                        int filteredUserIndex = _filteredUsers.indexWhere((u) => u.id == updatedUser.id);
-                        if (filteredUserIndex != -1) {
-                          _filteredUsers[filteredUserIndex] = updatedUser;
-                        }
-                      });
-                    }
-                  },
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    } else if (_savedUsers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Nenhum usuário salvo encontrado'),
+          ],
+        ),
+      );
+    } else {
+      return ListView.builder(
+        itemCount: _savedUsers.length,
+        itemBuilder: (context, index) {
+          final user = _savedUsers[index];
+          return Dismissible(
+            key: Key(user.id),
+            direction: DismissDirection.endToStart,
+            confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
+            onDismissed: (direction) async {
+              await _deleteUser(user.id); // Deletar usuário ao deslizar a lista
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${user.name} foi excluído'),
                 ),
               );
             },
+            background: Container(
+              color: Colors.red,
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              alignment: AlignmentDirectional.centerEnd,
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(user.avatarUrl),
+                radius: 25,
+              ),
+              title: Text(user.name),
+              subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+              onTap: () async {
+                final updatedUser = await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => UserDetailPage(user: user, showSaveButton: true),
+                  ),
+                );
+                if (updatedUser != null && updatedUser is PersonModel) {
+                  setState(() {
+                    _savedUsers[index] = updatedUser; // Atualizar usuário ao retornar da página de detalhes
+                  });
+                }
+              },
+            ),
           );
+        },
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Lista de páginas para o BottomNavigationBar
     List<Widget> _pages = <Widget>[
+      _showUserData(),
       Column(
         children: [
-          _buildFilterTextField(),
-          Expanded(child: _showUserData()),
+          _buildFilterFields(), // Campos de filtro
+          Expanded(child: _showSavedData()), // Lista de usuários salvos
         ],
       ),
-      _showSavedData(),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Data'),
+        title: Text('User Data'), // Título da AppBar
       ),
-      body: _pages.elementAt(_selectedIndex),
+      body: _pages.elementAt(_selectedIndex), // Exibir a página correspondente à aba selecionada
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
+          
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Show Data',
+            label: 'Show Data', // Rótulo da primeira aba
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.save),
-            label: 'Save Data',
+            label: 'Saved Data', // Rótulo da segunda aba
           ),
         ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        currentIndex: _selectedIndex, // Índice da aba atualmente selecionada
+        onTap: _onItemTapped, // Método para alternar entre as abas
+        backgroundColor: Colors.white, //cor de fundo do BottomNavigationBar
+        selectedItemColor: Colors.orange, //cor do item selecionado
+        unselectedItemColor: Colors.grey, //cor dos itens não selecionados
+        selectedIconTheme: IconThemeData(color: Colors.orange), //cor do item selecionado
+        unselectedIconTheme: IconThemeData(color: Colors.grey), // cor dos itens não selecionados
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               onPressed: _loadUserData,
-              tooltip: 'Recarregar Usuários',
-              child: Icon(Icons.refresh),
+              child: Icon(Icons.refresh), // Botão flutuante para recarregar usuários aleatórios
             )
           : null,
     );
