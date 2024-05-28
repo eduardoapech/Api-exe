@@ -20,9 +20,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Random User Data', // Define o título do aplicativo
+      title: '', // Define o título do aplicativo
       theme: ThemeData(
-        primarySwatch: Colors.blue, // Define o tema do aplicativo, com a cor primária azul
+        primarySwatch: Colors.blue,
+        textTheme: TextTheme( ) // Define o tema do aplicativo, com a cor primária azul
       ),
       home: UserDataPage(), // Define a página inicial do aplicativo como UserDataPage
     );

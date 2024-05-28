@@ -39,6 +39,7 @@ dependencies:
   dio: ^5.4.3+1
   sqflite: ^2.0.0+3
   path: ^1.9.0
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:

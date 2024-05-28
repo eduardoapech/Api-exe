@@ -4,6 +4,7 @@ import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/filter/services.dart';
 import 'package:api_dados/views/user_detail_page_view.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 // Declaração da classe UserDataPage como um StatefulWidget
 class UserDataPage extends StatefulWidget {
@@ -16,10 +17,10 @@ class _UserDataPageState extends State<UserDataPage> {
   // Listas para armazenar usuários filtrados e salvos
   List<PersonModel> _filteredUsers = [];
   List<PersonModel> _savedUsers = [];
-  
+
   // Variável para controlar o estado de carregamento
   bool _isLoading = false;
-  
+
   // Índice da aba selecionada no BottomNavigationBar
   int _selectedIndex = 0;
 
@@ -27,10 +28,10 @@ class _UserDataPageState extends State<UserDataPage> {
   final _filterController = TextEditingController();
   final _minAgeController = TextEditingController();
   final _maxAgeController = TextEditingController();
-  
+
   // Gênero selecionado para filtro
   String _selectedGender = '';
-  
+
   // Instância do modelo de filtro
   final filtroPessoa = FilterModel();
 
@@ -70,16 +71,30 @@ class _UserDataPageState extends State<UserDataPage> {
 
     // Configurar filtros com base nos valores dos controladores de texto e no gênero selecionado
     filtroPessoa.name = _filterController.text;
-    filtroPessoa.gender = _selectedGender;
+    
     filtroPessoa.minAge = int.tryParse(_minAgeController.text);
     filtroPessoa.maxAge = int.tryParse(_maxAgeController.text);
 
-    // Buscar usuários do banco de dados aplicando os filtros
+    //Se o gênero selecionado não for 'todos', aplicar filtro gênero
+    if (_selectedGender != 'todos') {
+    filtroPessoa.gender = _selectedGender;
+    } else { 
+      filtroPessoa.gender = null; //Não aplicar filtro por gênero
+    }
+
+    //Todo Buscar usuários do banco de dados aplicando os filtros
     final dbHelper = DatabaseHelper.instance;
     final users = await dbHelper.getAllUsers(filtroPessoa);
 
-    setState(() {
+    // Filtrar os usuários para que apenas os que começam com a primeira letra digitada sejam exibidos
+    if (_filterController.text.isNotEmpty) {
+      final firstLetter = _filterController.text[0].toUpperCase();
+      _savedUsers = users.where((user) => user.name.toUpperCase().startsWith(firstLetter)).toList();
+    } else {
       _savedUsers = users; // Atualizar a lista de usuários salvos
+    }
+
+    setState(() {
       _isLoading = false; // Definir estado de carregamento como falso
     });
   }
@@ -108,7 +123,7 @@ class _UserDataPageState extends State<UserDataPage> {
       barrierDismissible: false, // Impedir fechamento ao clicar fora do diálogo
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmar exclusão'),
+          title: const Text('Confirmar exclusão'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -118,13 +133,13 @@ class _UserDataPageState extends State<UserDataPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop(false); // Fechar diálogo sem deletar
               },
             ),
             TextButton(
-              child: Text('Apagar'),
+              child: const Text('Apagar'),
               onPressed: () {
                 Navigator.of(context).pop(true); // Fechar diálogo e confirmar exclusão
               },
@@ -156,8 +171,13 @@ class _UserDataPageState extends State<UserDataPage> {
             controller: _filterController,
             decoration: const InputDecoration(
               labelText: 'Pesquisar nome',
+              labelStyle: TextStyle(color: Colors.black, fontSize: 16),
               border: OutlineInputBorder(),
             ),
+             style: const TextStyle(color: Colors.black, fontSize: 16),
+            onChanged: (value) {
+              _loadSavedUsers();
+            },
           ),
           const SizedBox(height: 8.0),
           // Dropdown para selecionar o gênero
@@ -165,8 +185,8 @@ class _UserDataPageState extends State<UserDataPage> {
             value: _selectedGender.isNotEmpty ? _selectedGender : null,
             items: const [
               DropdownMenuItem(
-                value: '',
-                child: Text('Selecione o gênero'),
+                value: 'todos',
+                child: Text('Todos', ),
               ),
               DropdownMenuItem(
                 value: 'male',
@@ -181,47 +201,51 @@ class _UserDataPageState extends State<UserDataPage> {
               setState(() {
                 _selectedGender = value ?? '';
               });
+              _loadSavedUsers();
             },
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: 'Gênero',
+              labelStyle: TextStyle(color: Colors.black, fontSize: 16)
             ),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
           ),
-          SizedBox(height: 8.0),
+          const SizedBox(height: 8.0),
           // Campos de texto para idade mínima e máxima
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _minAgeController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Idade mínima',
+                     labelStyle: TextStyle(color: Colors.black, fontSize: 16),
                     border: OutlineInputBorder(),
                   ),
+                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   keyboardType: TextInputType.number,
+                  onChanged: (value) { 
+                    _loadSavedUsers();
+                  },
                 ),
               ),
-              SizedBox(width: 8.0),
+              const SizedBox(width: 8.0),
               Expanded(
                 child: TextField(
                   controller: _maxAgeController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Idade máxima',
+                     labelStyle: TextStyle(color: Colors.black, fontSize: 16),
                     border: OutlineInputBorder(),
                   ),
+                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   keyboardType: TextInputType.number,
+                   onChanged: (value) { 
+                    _loadSavedUsers();
+                  },
                 ),
               ),
             ],
-          ),
-          SizedBox(height: 8.0),
-          // Botão para aplicar filtros
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.red), //Cor do texto do botão
-            onPressed: _loadSavedUsers,
-            child: Text('Aplicar Filtros', ),
-
-            
           ),
         ],
       ),
@@ -231,17 +255,17 @@ class _UserDataPageState extends State<UserDataPage> {
   // Constrói a lista de usuários aleatórios ou exibe um indicador de progresso
   Widget _showUserData() {
     if (_isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     } else if (_filteredUsers.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Nenhum usuário encontrado'),
-            SizedBox(height: 16),
+            const Text('Nenhum usuário encontrado'),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadUserData,
-              child: Text('Tentar novamente'),
+              child: const Text('Tentar novamente'),
             ),
           ],
         ),
@@ -277,9 +301,9 @@ class _UserDataPageState extends State<UserDataPage> {
   // Constrói a lista de usuários salvos ou exibe um indicador de progresso
   Widget _showSavedData() {
     if (_isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     } else if (_savedUsers.isEmpty) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -306,9 +330,9 @@ class _UserDataPageState extends State<UserDataPage> {
             },
             background: Container(
               color: Colors.red,
-              padding: EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               alignment: AlignmentDirectional.centerEnd,
-              child: Icon(
+              child: const Icon(
                 Icons.delete,
                 color: Colors.white,
               ),
@@ -342,7 +366,7 @@ class _UserDataPageState extends State<UserDataPage> {
   @override
   Widget build(BuildContext context) {
     // Lista de páginas para o BottomNavigationBar
-    List<Widget> _pages = <Widget>[
+    List<Widget> pages = <Widget>[
       _showUserData(),
       Column(
         children: [
@@ -354,12 +378,11 @@ class _UserDataPageState extends State<UserDataPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Data'), // Título da AppBar
+        title: const Text('User Data'), // Título da AppBar
       ),
-      body: _pages.elementAt(_selectedIndex), // Exibir a página correspondente à aba selecionada
+      body: pages.elementAt(_selectedIndex), // Exibir a página correspondente à aba selecionada
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Show Data', // Rótulo da primeira aba
@@ -374,13 +397,13 @@ class _UserDataPageState extends State<UserDataPage> {
         backgroundColor: Colors.white, //cor de fundo do BottomNavigationBar
         selectedItemColor: Colors.orange, //cor do item selecionado
         unselectedItemColor: Colors.grey, //cor dos itens não selecionados
-        selectedIconTheme: IconThemeData(color: Colors.orange), //cor do item selecionado
-        unselectedIconTheme: IconThemeData(color: Colors.grey), // cor dos itens não selecionados
+        selectedIconTheme: const IconThemeData(color: Colors.orange), //cor do item selecionado
+        unselectedIconTheme: const IconThemeData(color: Colors.grey), // cor dos itens não selecionados
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               onPressed: _loadUserData,
-              child: Icon(Icons.refresh), // Botão flutuante para recarregar usuários aleatórios
+              child: const Icon(Icons.refresh), // Botão flutuante para recarregar usuários aleatórios
             )
           : null,
     );

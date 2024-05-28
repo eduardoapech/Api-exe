@@ -1,3 +1,4 @@
+import 'package:api_dados/main.dart';
 import 'package:sqflite/sqflite.dart'; // Importa a biblioteca sqflite para manipulação de banco de dados SQLite
 import 'package:path/path.dart'; // Importa a biblioteca path para manipulação de caminhos de arquivos
 import 'package:api_dados/models/person_model.dart'; // Importa o modelo PersonModel
@@ -102,34 +103,35 @@ class DatabaseHelper {
   }
 
   // Método para obter todos os usuários aplicando filtros
-  Future<List<PersonModel>> getAllUsers(FilterModel filter) async {
+  Future<List<PersonModel>> getAllUsers(FilterModel filtroPessoa) async {
     try {
+      filtroPessoa;
       final db = await database;
       String whereClause = ''; // Inicializa a cláusula WHERE
       List<dynamic> whereArgs = []; // Inicializa a lista de argumentos para a cláusula WHERE
 
       // Adiciona filtro por nome se especificado
-      if (filter.name != null && filter.name!.isNotEmpty) {
+      if (filtroPessoa.name != null && filtroPessoa.name!.isNotEmpty) {
         whereClause += 'name LIKE ?';
-        whereArgs.add('%${filter.name}%');
+        whereArgs.add('%${filtroPessoa.name}%');
       }
       // Adiciona filtro por gênero se especificado
-      if (filter.gender != null && filter.gender!.isNotEmpty) {
+      if (filtroPessoa.gender != null && filtroPessoa.gender!.isNotEmpty) {
         if (whereClause.isNotEmpty) whereClause += ' AND ';
         whereClause += 'gender = ?';
-        whereArgs.add(filter.gender);
+        whereArgs.add(filtroPessoa.gender);
       }
       // Adiciona filtro por idade mínima se especificado
-      if (filter.minAge != null) {
+      if (filtroPessoa.minAge != null) {
         if (whereClause.isNotEmpty) whereClause += ' AND ';
-        whereClause += 'age >= ?';
-        whereArgs.add(filter.minAge);
+        whereClause += 'age > ?';
+        whereArgs.add(filtroPessoa.minAge);
       }
       // Adiciona filtro por idade máxima se especificado
-      if (filter.maxAge != null) {
+      if (filtroPessoa.maxAge != null) {
         if (whereClause.isNotEmpty) whereClause += ' AND ';
-        whereClause += 'age <= ?';
-        whereArgs.add(filter.maxAge);
+        whereClause += 'age < ?';
+        whereArgs.add(filtroPessoa.maxAge);
       }
 
       // Consulta o banco de dados com os filtros aplicados

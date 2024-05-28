@@ -113,7 +113,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
         backgroundColor: Color.fromARGB(255, 40, 51, 59), // Cor de fundo
         disabledForegroundColor: Colors.grey.withOpacity(0.38), // Cor do texto quando desabilitado
       ),
-      child: const Text('Salvar Usuário'),
+      child: const Text(
+        'Salvar Usuário',
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 
@@ -123,17 +126,54 @@ class _UserDetailPageState extends State<UserDetailPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmar Atualização'),
-          content: Text('Tem certeza que deseja atualizar o usuário?'),
+          title: Text('Deseja Salvar?'),
+          content: Text(''),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancelar'),
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(Colors.white),
+                side: WidgetStateProperty.all(const BorderSide(color: Colors.red)), // Define a cor da borda
+                overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.hovered)) return Colors.red.withOpacity(0.2); // Define a cor do overlay quando o botão está sendo pressionado
+                    if (states.contains(WidgetState.focused) || states.contains(WidgetState.pressed)) return Colors.red.withOpacity(0.4); // Define a cor do overlay quando o botão está em foco
+                    return null;
+                  },
+                ),
+              ),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.black),
+              ),
               onPressed: () {
                 Navigator.of(context).pop(false); // Fecha o diálogo sem confirmar
               },
             ),
             TextButton(
-              child: Text('Confirmar'),
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(Colors.white),
+                side: WidgetStateProperty.all(const BorderSide(color: Colors.green)), // Define a cor da borda
+                overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.hovered))
+                      return Colors.red.withOpacity(
+                        0.2,
+                      ); // Define a cor do overlay quando o botão está sendo pressionado
+                    if (states.contains(WidgetState.focused) ||
+                        states.contains(
+                          WidgetState.pressed,
+                        ))
+                      return Colors.green.withOpacity(
+                        0.4,
+                      ); // Define a cor do overlay quando o botão está em foco
+                    return null;
+                  },
+                ),
+              ),
+              child: const Text(
+                'Confirmar',
+                style: TextStyle(color: Colors.black),
+              ),
               onPressed: () {
                 Navigator.of(context).pop(true); // Fecha o diálogo e confirma
               },

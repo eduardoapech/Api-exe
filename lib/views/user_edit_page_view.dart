@@ -27,7 +27,7 @@ class _UserEditPageState extends State<UserEditPage> {
   late TextEditingController _stateController;
   late TextEditingController _ageController;
 
-  String _gender = ''; // Inicializa o gênero como string vazia
+  late String _gender; // Inicializa o gênero com valor vazio
 
   // Variáveis para armazenar os valores originais dos campos
   late String _originalName, _originalUsername, _originalEmail, _originalCity, _originalState, _originalGender;
@@ -174,8 +174,8 @@ class _UserEditPageState extends State<UserEditPage> {
       value: _gender.isNotEmpty ? _gender : null,
       items: [
         DropdownMenuItem(
-          value: '',
-          child: Text('Selecione o gênero'),
+          value: 'outro',
+          child: Text('Outro'),
         ),
         DropdownMenuItem(
           value: 'male',
@@ -188,8 +188,9 @@ class _UserEditPageState extends State<UserEditPage> {
       ],
       onChanged: (value) {
         setState(() {
-          _gender = value!;
-          _onFieldChanged('gender', value);
+          hasModifications = true;
+          _gender = value ?? '';
+          
         });
       },
       decoration: InputDecoration(
@@ -203,7 +204,9 @@ class _UserEditPageState extends State<UserEditPage> {
         return null;
       },
     );
+    
   }
+  
 
   @override
   Widget build(BuildContext context) {
