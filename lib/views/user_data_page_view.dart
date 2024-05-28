@@ -25,9 +25,10 @@ class _UserDataPageState extends State<UserDataPage> {
   int _selectedIndex = 0;
 
   // Controladores de texto para os campos de filtro
-  final _filterController = TextEditingController();
-  final _minAgeController = TextEditingController();
-  final _maxAgeController = TextEditingController();
+  final TextEditingController _filterController = TextEditingController();
+  final TextEditingController _minAgeController = TextEditingController();
+  final TextEditingController _maxAgeController = TextEditingController();
+  bool _showClearIcon = false;
 
   // Gênero selecionado para filtro
   String _selectedGender = '';
@@ -38,9 +39,21 @@ class _UserDataPageState extends State<UserDataPage> {
   @override
   void initState() {
     super.initState();
-    // Carregar dados de usuários aleatórios ao inicializar o estado
-    _loadUserData();
+    _filterController.addListener(_onFilterChange);
+    _minAgeController.addListener(_onFilterChange);
+    _maxAgeController.addListener(_onFilterChange);
+
+    
   }
+
+    void _onFilterChange() { 
+      setState(() {
+        _showClearIcon = 
+        _filterController.text.isNotEmpty ||
+        _minAgeController.text.isNotEmpty ||
+        _maxAgeController.text.isNotEmpty;
+      });
+    }
 
   @override
   void dispose() {
@@ -171,19 +184,22 @@ class _UserDataPageState extends State<UserDataPage> {
           TextField(
             controller: _filterController,
             decoration: InputDecoration(
-              labelText: 'Pesquisar nome',
-              labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
-              border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
-              enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-              focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () {
-                  _filterController.clear();
-                  _loadSavedUsers();
-                },
-              ),
-            ),
+                labelText: 'Pesquisar nome',
+                labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
+                enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                suffixIcon: _showClearIcon
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _filterController.clear();
+                          _minAgeController.clear();
+                          _maxAgeController.clear();
+                          _loadSavedUsers();
+                        },
+                      )
+                    : null),
             style: const TextStyle(color: Colors.black, fontSize: 16),
             onChanged: (value) {
               _loadSavedUsers();
@@ -238,12 +254,15 @@ class _UserDataPageState extends State<UserDataPage> {
                       border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
                       enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
                       focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          _minAgeController.clear();
-                        },
-                      )),
+                      suffixIcon: _showClearIcon
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _minAgeController.clear();
+                                _loadSavedUsers();
+                              },
+                            )
+                          : null),
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
@@ -262,9 +281,10 @@ class _UserDataPageState extends State<UserDataPage> {
                       enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
                       focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: Icon(Icons.clear),
                         onPressed: () {
                           _maxAgeController.clear();
+                          _loadSavedUsers();
                         },
                       )),
                   style: const TextStyle(color: Colors.black, fontSize: 16),
@@ -280,6 +300,7 @@ class _UserDataPageState extends State<UserDataPage> {
       ),
     );
   }
+  
 
   // Constrói a lista de usuários aleatórios ou exibe um indicador de progresso
   Widget _showUserData() {
