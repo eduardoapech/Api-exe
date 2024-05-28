@@ -28,7 +28,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_user.name), // Define o título da AppBar com o nome do usuário
+        title: Text(''), // Define o título da AppBar com o nome do usuário
         actions: [
           IconButton(
             icon: const Icon(Icons.edit), // Ícone de edição
@@ -49,49 +49,91 @@ class _UserDetailPageState extends State<UserDetailPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            _buildAvatar(_user.avatarUrl), // Constrói o avatar do usuário
-            const SizedBox(height: 20),
-            Expanded(
-              child: _buildUserInfo(context), // Constrói as informações do usuário
-            ),
-            if (widget.showSaveButton)
-              Center(
-                child: _saveButton(context), // Constrói o botão de salvar se showSaveButton for true
+      body: Container(
+        color: Colors.blue, // Define a cor de fundo azul para a tela
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _buildAvatar(_user.avatarUrl, _user.name), // Constrói o avatar do usuário
+              const SizedBox(height: 20),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0), // Define o raio da borda do contorno
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: _buildUserInfo(context), // Constrói as informações do usuário
+                  ),
+                ),
               ),
-          ],
+              if (widget.showSaveButton)
+                Center(
+                  child: _saveButton(context), // Constrói o botão de salvar se showSaveButton for true
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   // Constrói o avatar do usuário
-  Widget _buildAvatar(String imageUrl) {
-    return CircleAvatar(
-      radius: 50,
-      backgroundImage: NetworkImage(imageUrl),
+  Widget _buildAvatar(String imageUrl, String name) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.black,
+              width: 2.0,
+            ),
+          ),
+          child: CircleAvatar(
+            radius: 50,
+            backgroundImage: NetworkImage(imageUrl),
+          ),
+        ),
+        SizedBox(
+          width: 20,
+        ),
+        Text(
+          name,
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        )
+      ],
     );
   }
 
   // Constrói as informações do usuário
   Widget _buildUserInfo(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _buildUserDetailTile(Icons.person, 'Id', _user.id),
-          _buildUserDetailTile(Icons.person_outline, 'Name', _user.name),
-          _buildUserDetailTile(Icons.account_circle, 'Username', _user.username),
-          _buildUserDetailTile(Icons.email, 'Email', _user.email),
-          _buildUserDetailTile(Icons.location_city, 'City', _user.city),
-          _buildUserDetailTile(Icons.map, 'State', _user.state),
-          _buildUserDetailTile(Icons.transgender, 'Gender', _user.gender),
-          _buildUserDetailTile(Icons.cake, 'Age', _user.age.toString()),
-        ],
+      child: Container(
+        decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black,
+              width: 2.0,
+            ),
+            borderRadius: BorderRadius.circular(10.0),
+            color: Colors.white),
+        padding: EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _buildUserDetailTile(Icons.person, 'Id', _user.id),
+            _buildUserDetailTile(Icons.person_outline, 'Name', _user.name),
+            _buildUserDetailTile(Icons.account_circle, 'Username', _user.username),
+            _buildUserDetailTile(Icons.email, 'Email', _user.email),
+            _buildUserDetailTile(Icons.location_city, 'City', _user.city),
+            _buildUserDetailTile(Icons.map, 'State', _user.state),
+            _buildUserDetailTile(Icons.transgender, 'Gender', _user.gender),
+            _buildUserDetailTile(Icons.cake, 'Age', _user.age.toString()),
+          ],
+        ),
       ),
     );
   }

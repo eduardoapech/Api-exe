@@ -71,14 +71,14 @@ class _UserDataPageState extends State<UserDataPage> {
 
     // Configurar filtros com base nos valores dos controladores de texto e no gênero selecionado
     filtroPessoa.name = _filterController.text;
-    
+
     filtroPessoa.minAge = int.tryParse(_minAgeController.text);
     filtroPessoa.maxAge = int.tryParse(_maxAgeController.text);
 
     //Se o gênero selecionado não for 'todos', aplicar filtro gênero
     if (_selectedGender != 'todos') {
-    filtroPessoa.gender = _selectedGender;
-    } else { 
+      filtroPessoa.gender = _selectedGender;
+    } else {
       filtroPessoa.gender = null; //Não aplicar filtro por gênero
     }
 
@@ -169,12 +169,21 @@ class _UserDataPageState extends State<UserDataPage> {
           // Campo de texto para pesquisar pelo nome
           TextField(
             controller: _filterController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Pesquisar nome',
-              labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-              border: OutlineInputBorder(),
+              labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+              border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
+              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  _filterController.clear();
+                  _loadSavedUsers();
+                },
+              ),
             ),
-             style: const TextStyle(color: Colors.black, fontSize: 16),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
             onChanged: (value) {
               _loadSavedUsers();
             },
@@ -186,7 +195,9 @@ class _UserDataPageState extends State<UserDataPage> {
             items: const [
               DropdownMenuItem(
                 value: 'todos',
-                child: Text('Todos', ),
+                child: Text(
+                  'Todos',
+                ),
               ),
               DropdownMenuItem(
                 value: 'male',
@@ -204,10 +215,15 @@ class _UserDataPageState extends State<UserDataPage> {
               _loadSavedUsers();
             },
             decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Gênero',
-              labelStyle: TextStyle(color: Colors.black, fontSize: 16)
-            ),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                  color: Colors.black,
+                  width: 2.0,
+                )),
+                labelText: 'Gênero',
+                labelStyle: TextStyle(color: Colors.black, fontSize: 16)),
             style: const TextStyle(color: Colors.black, fontSize: 16),
           ),
           const SizedBox(height: 8.0),
@@ -217,14 +233,21 @@ class _UserDataPageState extends State<UserDataPage> {
               Expanded(
                 child: TextField(
                   controller: _minAgeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Idade mínima',
-                     labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                    border: OutlineInputBorder(),
-                  ),
-                   style: const TextStyle(color: Colors.black, fontSize: 16),
+                  decoration: InputDecoration(
+                      labelText: 'Idade mínima',
+                      labelStyle: TextStyle(color: Colors.black, fontSize: 16),
+                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          _minAgeController.clear();
+                        },
+                      )),
+                  style: const TextStyle(color: Colors.black, fontSize: 16),
                   keyboardType: TextInputType.number,
-                  onChanged: (value) { 
+                  onChanged: (value) {
                     _loadSavedUsers();
                   },
                 ),
@@ -233,14 +256,21 @@ class _UserDataPageState extends State<UserDataPage> {
               Expanded(
                 child: TextField(
                   controller: _maxAgeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Idade máxima',
-                     labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                    border: OutlineInputBorder(),
-                  ),
-                   style: const TextStyle(color: Colors.black, fontSize: 16),
+                  decoration: InputDecoration(
+                      labelText: 'Idade máxima',
+                      labelStyle: TextStyle(color: Colors.black, fontSize: 16),
+                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 6.0)),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          _maxAgeController.clear();
+                        },
+                      )),
+                  style: const TextStyle(color: Colors.black, fontSize: 16),
                   keyboardType: TextInputType.number,
-                   onChanged: (value) { 
+                  onChanged: (value) {
                     _loadSavedUsers();
                   },
                 ),
@@ -254,88 +284,33 @@ class _UserDataPageState extends State<UserDataPage> {
 
   // Constrói a lista de usuários aleatórios ou exibe um indicador de progresso
   Widget _showUserData() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (_filteredUsers.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Nenhum usuário encontrado'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadUserData,
-              child: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return ListView.builder(
-        itemCount: _filteredUsers.length,
-        itemBuilder: (context, index) {
-          final user = _filteredUsers[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(user.avatarUrl),
-              radius: 25,
-            ),
-            title: Text(user.name),
-            subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
-            onTap: () async {
-              final updatedUser = await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => UserDetailPage(user: user, showSaveButton: true),
-                ),
-              );
-              if (updatedUser != null && updatedUser is PersonModel) {
-                await _saveUser(updatedUser); // Salvar usuário ao retornar da página de detalhes
-              }
-            },
-          );
-        },
-      );
-    }
-  }
-
-  // Constrói a lista de usuários salvos ou exibe um indicador de progresso
-  Widget _showSavedData() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (_savedUsers.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Nenhum usuário salvo encontrado'),
-          ],
-        ),
-      );
-    } else {
-      return ListView.builder(
-        itemCount: _savedUsers.length,
-        itemBuilder: (context, index) {
-          final user = _savedUsers[index];
-          return Dismissible(
-            key: Key(user.id),
-            direction: DismissDirection.endToStart,
-            confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
-            onDismissed: (direction) async {
-              await _deleteUser(user.id); // Deletar usuário ao deslizar a lista
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${user.name} foi excluído'),
-                ),
-              );
-            },
-            background: Container(
-              color: Colors.red,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              alignment: AlignmentDirectional.centerEnd,
-              child: const Icon(
-                Icons.delete,
-                color: Colors.white,
-              ),
+  if (_isLoading) {
+    return const Center(child: CircularProgressIndicator());
+  } else if (_filteredUsers.isEmpty) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('Nenhum usuário encontrado'),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadUserData,
+            child: const Text('Tentar novamente'),
+          ),
+        ],
+      ),
+    );
+  } else {
+    return ListView.builder(
+      itemCount: _filteredUsers.length,
+      itemBuilder: (context, index) {
+        final user = _filteredUsers[index];
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              side: const BorderSide(color: Colors.black, width: 2.0),
             ),
             child: ListTile(
               leading: CircleAvatar(
@@ -344,6 +319,12 @@ class _UserDataPageState extends State<UserDataPage> {
               ),
               title: Text(user.name),
               subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+              trailing: IconButton(
+                icon: const Icon(Icons.save, color: Colors.green),
+                onPressed: () async {
+                  await _saveUser(user);
+                },
+              ),
               onTap: () async {
                 final updatedUser = await Navigator.of(context).push(
                   MaterialPageRoute(
@@ -351,17 +332,87 @@ class _UserDataPageState extends State<UserDataPage> {
                   ),
                 );
                 if (updatedUser != null && updatedUser is PersonModel) {
-                  setState(() {
-                    _savedUsers[index] = updatedUser; // Atualizar usuário ao retornar da página de detalhes
-                  });
+                  await _saveUser(updatedUser); // Salvar usuário ao retornar da página de detalhes
                 }
               },
             ),
-          );
-        },
-      );
-    }
+          ),
+        );
+      },
+    );
   }
+}
+
+
+  // Constrói a lista de usuários salvos ou exibe um indicador de progresso
+  Widget _showSavedData() {
+  if (_isLoading) {
+    return const Center(child: CircularProgressIndicator());
+  } else if (_savedUsers.isEmpty) {
+    return const Center(
+      child: Text('Nenhum usuário salvo encontrado'),
+    );
+  } else {
+    return ListView.builder(
+      itemCount: _savedUsers.length,
+      itemBuilder: (context, index) {
+        final user = _savedUsers[index];
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              side: const BorderSide(color: Colors.black, width: 2.0),
+            ),
+            child: Dismissible(
+              key: Key(user.id),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
+              onDismissed: (direction) async {
+                await _deleteUser(user.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${user.name} foi excluído'),
+                  ),
+                );
+              },
+              background: Container(
+                color: Colors.red,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                alignment: AlignmentDirectional.centerEnd,
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(user.avatarUrl),
+                  radius: 25,
+                ),
+                title: Text(user.name),
+                subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+                onTap: () async {
+                  final updatedUser = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => UserDetailPage(user: user, showSaveButton: true),
+                    ),
+                  );
+                  if (updatedUser != null && updatedUser is PersonModel) {
+                    setState(() {
+                      _savedUsers[index] = updatedUser;
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -395,9 +446,9 @@ class _UserDataPageState extends State<UserDataPage> {
         currentIndex: _selectedIndex, // Índice da aba atualmente selecionada
         onTap: _onItemTapped, // Método para alternar entre as abas
         backgroundColor: Colors.white, //cor de fundo do BottomNavigationBar
-        selectedItemColor: Colors.orange, //cor do item selecionado
+        selectedItemColor: Colors.red, //cor do item selecionado
         unselectedItemColor: Colors.grey, //cor dos itens não selecionados
-        selectedIconTheme: const IconThemeData(color: Colors.orange), //cor do item selecionado
+        selectedIconTheme: const IconThemeData(color: Colors.red), //cor do item selecionado
         unselectedIconTheme: const IconThemeData(color: Colors.grey), // cor dos itens não selecionados
       ),
       floatingActionButton: _selectedIndex == 0

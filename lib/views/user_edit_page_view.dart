@@ -66,13 +66,7 @@ class _UserEditPageState extends State<UserEditPage> {
 
   void _checkForModifications() {
     setState(() {
-      hasModifications = _nameController.text != _originalName || 
-                         _usernameController.text != _originalUsername || 
-                         _emailController.text != _originalEmail || 
-                         _cityController.text != _originalCity || 
-                         _stateController.text != _originalState || 
-                         _gender != _originalGender || 
-                         _ageController.text != _originalAge.toString();
+      hasModifications = _nameController.text != _originalName || _usernameController.text != _originalUsername || _emailController.text != _originalEmail || _cityController.text != _originalCity || _stateController.text != _originalState || _gender != _originalGender || _ageController.text != _originalAge.toString();
     });
   }
 
@@ -170,43 +164,61 @@ class _UserEditPageState extends State<UserEditPage> {
 
   // Constrói o campo de seleção de gênero usando DropdownButtonFormField
   Widget _buildGenderField() {
-    return DropdownButtonFormField<String>(
-      value: _gender.isNotEmpty ? _gender : null,
-      items: [
-        DropdownMenuItem(
-          value: 'outro',
-          child: Text('Outro'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          value: _gender.isNotEmpty ? _gender : null,
+          items: [
+            DropdownMenuItem(
+              value: 'outro',
+              child: Text(
+                'Outro',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'male',
+              child: Text(
+                'Male',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'female',
+              child: Text(
+                'Female',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              hasModifications = true;
+              _gender = value ?? '';
+            });
+          },
+          decoration: InputDecoration(
+            border: OutlineInputBorder( 
+              borderSide: BorderSide(color: Colors.black, width: 2.0)
+            ),
+            labelText: 'Gênero',
+            labelStyle: TextStyle(color: Colors.black, fontSize: 16),
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 16),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, selecione um gênero';
+            }
+            return null;
+          },
         ),
-        DropdownMenuItem(
-          value: 'male',
-          child: Text('Male'),
-        ),
-        DropdownMenuItem(
-          value: 'female',
-          child: Text('Female'),
-        ),
+        SizedBox(
+          height: 8.0,
+        )
       ],
-      onChanged: (value) {
-        setState(() {
-          hasModifications = true;
-          _gender = value ?? '';
-          
-        });
-      },
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        labelText: 'Gênero',
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor, selecione um gênero';
-        }
-        return null;
-      },
     );
-    
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +254,6 @@ class _UserEditPageState extends State<UserEditPage> {
                 ),
                 CsTextField(
                   labelText: 'Username',
-                  
                   controller: _usernameController,
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {

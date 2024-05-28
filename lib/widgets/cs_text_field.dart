@@ -47,7 +47,9 @@ class CsTextField extends StatelessWidget {
         controller: controller,
         decoration: _inputDecoration(
           labelText: labelText,
-          border: OutlineInputBorder(),
+          border: OutlineInputBorder( 
+            borderSide: BorderSide(color: Colors.black, width: 2.0)
+          ),
           contentPadding: EdgeInsets.all(15.0),
         ),
         validator: validator,
