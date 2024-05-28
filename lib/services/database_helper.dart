@@ -44,6 +44,7 @@ class DatabaseHelper {
     ''';
     await db.execute(sql); // Executa a criação da tabela
   }
+  
 
   // Método para inserir um usuário no banco de dados
   Future<int> createUser(PersonModel user) async {

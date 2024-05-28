@@ -4,7 +4,7 @@ import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/filter/services.dart';
 import 'package:api_dados/views/user_detail_page_view.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:badges/badges.dart';
 
 // Declaração da classe UserDataPage como um StatefulWidget
 class UserDataPage extends StatefulWidget {
@@ -154,6 +154,7 @@ class _UserDataPageState extends State<UserDataPage> {
   Future<void> _saveUser(PersonModel user) async {
     final dbHelper = DatabaseHelper.instance;
     await dbHelper.createUser(user); // Salvar usuário no banco de dados
+    // _showNotificationScreen(user.name);
     setState(() {
       _filteredUsers.removeWhere((u) => u.id == user.id); // Remover usuário da lista de filtrados
       _savedUsers.add(user); // Adicionar usuário à lista de salvos
@@ -173,8 +174,8 @@ class _UserDataPageState extends State<UserDataPage> {
               labelText: 'Pesquisar nome',
               labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
               border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
-              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+              enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+              focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
               suffixIcon: IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () {
@@ -195,9 +196,7 @@ class _UserDataPageState extends State<UserDataPage> {
             items: const [
               DropdownMenuItem(
                 value: 'todos',
-                child: Text(
-                  'Todos',
-                ),
+                child: Text('Todos'),
               ),
               DropdownMenuItem(
                 value: 'male',
@@ -235,12 +234,12 @@ class _UserDataPageState extends State<UserDataPage> {
                   controller: _minAgeController,
                   decoration: InputDecoration(
                       labelText: 'Idade mínima',
-                      labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
-                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                      labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                      border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
+                      enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         onPressed: () {
                           _minAgeController.clear();
                         },
@@ -284,106 +283,33 @@ class _UserDataPageState extends State<UserDataPage> {
 
   // Constrói a lista de usuários aleatórios ou exibe um indicador de progresso
   Widget _showUserData() {
-  if (_isLoading) {
-    return const Center(child: CircularProgressIndicator());
-  } else if (_filteredUsers.isEmpty) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('Nenhum usuário encontrado'),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _loadUserData,
-            child: const Text('Tentar novamente'),
-          ),
-        ],
-      ),
-    );
-  } else {
-    return ListView.builder(
-      itemCount: _filteredUsers.length,
-      itemBuilder: (context, index) {
-        final user = _filteredUsers[index];
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-              side: const BorderSide(color: Colors.black, width: 2.0),
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (_filteredUsers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Nenhum usuário encontrado'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadUserData,
+              child: const Text('Tentar novamente'),
             ),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundImage: NetworkImage(user.avatarUrl),
-                radius: 25,
-              ),
-              title: Text(user.name),
-              subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
-              trailing: IconButton(
-                icon: const Icon(Icons.save, color: Colors.green),
-                onPressed: () async {
-                  await _saveUser(user);
-                },
-              ),
-              onTap: () async {
-                final updatedUser = await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => UserDetailPage(user: user, showSaveButton: true),
-                  ),
-                );
-                if (updatedUser != null && updatedUser is PersonModel) {
-                  await _saveUser(updatedUser); // Salvar usuário ao retornar da página de detalhes
-                }
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-
-  // Constrói a lista de usuários salvos ou exibe um indicador de progresso
-  Widget _showSavedData() {
-  if (_isLoading) {
-    return const Center(child: CircularProgressIndicator());
-  } else if (_savedUsers.isEmpty) {
-    return const Center(
-      child: Text('Nenhum usuário salvo encontrado'),
-    );
-  } else {
-    return ListView.builder(
-      itemCount: _savedUsers.length,
-      itemBuilder: (context, index) {
-        final user = _savedUsers[index];
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-              side: const BorderSide(color: Colors.black, width: 2.0),
-            ),
-            child: Dismissible(
-              key: Key(user.id),
-              direction: DismissDirection.endToStart,
-              confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
-              onDismissed: (direction) async {
-                await _deleteUser(user.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${user.name} foi excluído'),
-                  ),
-                );
-              },
-              background: Container(
-                color: Colors.red,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                alignment: AlignmentDirectional.centerEnd,
-                child: const Icon(
-                  Icons.delete,
-                  color: Colors.white,
-                ),
+          ],
+        ),
+      );
+    } else {
+      return ListView.builder(
+        itemCount: _filteredUsers.length,
+        itemBuilder: (context, index) {
+          final user = _filteredUsers[index];
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                side: const BorderSide(color: Colors.black, width: 2.0),
               ),
               child: ListTile(
                 leading: CircleAvatar(
@@ -392,6 +318,12 @@ class _UserDataPageState extends State<UserDataPage> {
                 ),
                 title: Text(user.name),
                 subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.save, color: Colors.green),
+                  onPressed: () async {
+                    await _saveUser(user);
+                  },
+                ),
                 onTap: () async {
                   final updatedUser = await Navigator.of(context).push(
                     MaterialPageRoute(
@@ -399,20 +331,106 @@ class _UserDataPageState extends State<UserDataPage> {
                     ),
                   );
                   if (updatedUser != null && updatedUser is PersonModel) {
-                    setState(() {
-                      _savedUsers[index] = updatedUser;
-                    });
+                    await _saveUser(updatedUser); // Salvar usuário ao retornar da página de detalhes
                   }
                 },
               ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    }
   }
-}
 
+  // Constrói a lista de usuários salvos ou exibe um indicador de progresso
+  Widget _showSavedData() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (_savedUsers.isEmpty) {
+      return const Center(
+        child: Text('Nenhum usuário salvo encontrado'),
+      );
+    } else {
+      return ListView.builder(
+        itemCount: _savedUsers.length,
+        itemBuilder: (context, index) {
+          final user = _savedUsers[index];
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                side: const BorderSide(color: Colors.black, width: 2.0),
+              ),
+              child: Dismissible(
+                key: Key(user.id),
+                direction: DismissDirection.endToStart,
+                confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
+                onDismissed: (direction) async {
+                  await _deleteUser(user.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${user.name} foi excluído'),
+                    ),
+                  );
+                },
+                background: Container(
+                  color: Colors.red,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                ),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(user.avatarUrl),
+                    radius: 25,
+                  ),
+                  title: Text(user.name),
+                  subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+                  onTap: () async {
+                    final updatedUser = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => UserDetailPage(user: user, showSaveButton: true),
+                      ),
+                    );
+                    if (updatedUser != null && updatedUser is PersonModel) {
+                      setState(() {
+                        _savedUsers[index] = updatedUser;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+// Método para construir a tela de notificação
+  // void _showNotificationScreen(String userName) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text('Usuário Salvo'),
+  //         content: Text('O usuário $userName foi salvo com sucesso.'),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Text('Fechar'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +447,21 @@ class _UserDataPageState extends State<UserDataPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Data'), // Título da AppBar
+        title: Text('User Data'), // Título da AppBar
+        // actions: [
+        //   Badge(
+        //     badgeContent: Text(
+        //       '$_savedCount', // Use a variável que armazena a contagem de usuários salvos ou editados
+        //       style: TextStyle(color: Colors.white),
+        //     ),
+        //     badgeColor: Colors.red,
+        //     position: BadgePosition.topEnd(top: 0, end: 0),
+        //     child: IconButton(
+        //       icon: Icon(Icons.notification_add),
+        //       onPressed: () {},
+        //     ),
+        //   ),
+        // ],
       ),
       body: pages.elementAt(_selectedIndex), // Exibir a página correspondente à aba selecionada
       bottomNavigationBar: BottomNavigationBar(
