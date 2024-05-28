@@ -22,12 +22,20 @@ class CsTextField extends StatelessWidget {
     required String labelText,
     required Object border,
     required EdgeInsets contentPadding,
-    
   }) {
     return InputDecoration(
       labelText: labelText,
+      labelStyle: TextStyle(fontSize: 16),
+
       border: OutlineInputBorder(),
       contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+      // Define o estilo do texto de entrada
+      // Aqui, definimos o tamanho da fonte para 16
+      // Você pode ajustar o valor conforme necessário
+      // para manter o tamanho de todas as fontes iguais.
+      // Por exemplo, se você deseja que todas as fontes tenham tamanho 16,
+      // você pode definir isso aqui.
+      // Você também pode usar um estilo global de tema para definir isso.
     );
   }
 
