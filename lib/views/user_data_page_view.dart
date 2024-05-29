@@ -4,12 +4,27 @@ import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/filter/services.dart';
 import 'package:api_dados/views/user_detail_page_view.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:badges/badges.dart';
+import 'package:intl/intl.dart';
 
 // Declaração da classe UserDataPage como um StatefulWidget
 class UserDataPage extends StatefulWidget {
   @override
   _UserDataPageState createState() => _UserDataPageState();
+}
+
+String accents(String str) {
+  return str
+      .replaceAll(
+        RegExp(r'[áàãâä]'),
+        'a',
+      )
+      .replaceAll(RegExp(r'[éèêë]'), 'e')
+      .replaceAll(RegExp(r'[íìîï]'), 'i')
+      .replaceAll(RegExp(r'[óòõôö]'), 'o')
+      .replaceAll(RegExp(r'[úùûü]'), 'u')
+      .replaceAll(RegExp(r'[ç]'), 'c');
 }
 
 // Estado associado ao UserDataPage
@@ -28,7 +43,12 @@ class _UserDataPageState extends State<UserDataPage> {
   final TextEditingController _filterController = TextEditingController();
   final TextEditingController _minAgeController = TextEditingController();
   final TextEditingController _maxAgeController = TextEditingController();
-  bool _showClearIcon = false;
+
+  final ValueNotifier<bool> _showClearIconforfilter = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _showClearIconForMinAge = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _showClearIconForMaxAge = ValueNotifier<bool>(false);
+
+  // bool _showClearIcon = false;
 
   // Gênero selecionado para filtro
   String _selectedGender = '';
@@ -36,24 +56,23 @@ class _UserDataPageState extends State<UserDataPage> {
   // Instância do modelo de filtro
   final filtroPessoa = FilterModel();
 
+  // final EasyDebounce _debouncer = Debouncer(const Duration(milliseconds: 500));
   @override
   void initState() {
     super.initState();
-    _filterController.addListener(_onFilterChange);
-    _minAgeController.addListener(_onFilterChange);
-    _maxAgeController.addListener(_onFilterChange);
-
-    
+    _filterController.addListener(() {
+      _showClearIconforfilter.value = _filterController.text.isNotEmpty;
+      EasyDebounce.debounce('filterDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
+    });
+    _minAgeController.addListener(() {
+      _showClearIconForMinAge.value = _minAgeController.text.isNotEmpty;
+      EasyDebounce.debounce('minAgeDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
+    });
+    _maxAgeController.addListener(() {
+      _showClearIconForMaxAge.value = _maxAgeController.text.isNotEmpty;
+      EasyDebounce.debounce('maxAgeDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
+    });
   }
-
-    void _onFilterChange() { 
-      setState(() {
-        _showClearIcon = 
-        _filterController.text.isNotEmpty ||
-        _minAgeController.text.isNotEmpty ||
-        _maxAgeController.text.isNotEmpty;
-      });
-    }
 
   @override
   void dispose() {
@@ -61,6 +80,9 @@ class _UserDataPageState extends State<UserDataPage> {
     _filterController.dispose();
     _minAgeController.dispose();
     _maxAgeController.dispose();
+    _showClearIconforfilter.dispose();
+    _showClearIconForMinAge.dispose();
+    _showClearIconForMaxAge.dispose();
     super.dispose();
   }
 
@@ -101,8 +123,8 @@ class _UserDataPageState extends State<UserDataPage> {
 
     // Filtrar os usuários para que apenas os que começam com a primeira letra digitada sejam exibidos
     if (_filterController.text.isNotEmpty) {
-      final firstLetter = _filterController.text[0].toUpperCase();
-      _savedUsers = users.where((user) => user.name.toUpperCase().startsWith(firstLetter)).toList();
+      final searchText = accents(_filterController.text.toUpperCase());
+      _savedUsers = users.where((user) => accents(user.name.toUpperCase()).contains(searchText)).toList();
     } else {
       _savedUsers = users; // Atualizar a lista de usuários salvos
     }
@@ -180,29 +202,31 @@ class _UserDataPageState extends State<UserDataPage> {
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          // Campo de texto para pesquisar pelo nome
-          TextField(
-            controller: _filterController,
-            decoration: InputDecoration(
-                labelText: 'Pesquisar nome',
-                labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
-                border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
-                enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
-                suffixIcon: _showClearIcon
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _filterController.clear();
-                          _minAgeController.clear();
-                          _maxAgeController.clear();
-                          _loadSavedUsers();
-                        },
-                      )
-                    : null),
-            style: const TextStyle(color: Colors.black, fontSize: 16),
-            onChanged: (value) {
-              _loadSavedUsers();
+          ValueListenableBuilder<bool>(
+            valueListenable: _showClearIconforfilter,
+            builder: (context, value, child) {
+              // Campo de texto para pesquisar pelo nome
+              return TextField(
+                controller: _filterController,
+                decoration: InputDecoration(
+                  labelText: 'Pesquisar nome',
+                  labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                  border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
+                  enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                  suffixIcon: value
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _filterController.clear();
+
+                            _loadSavedUsers();
+                          },
+                        )
+                      : null,
+                ),
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+              );
             },
           ),
           const SizedBox(height: 8.0),
@@ -227,7 +251,7 @@ class _UserDataPageState extends State<UserDataPage> {
               setState(() {
                 _selectedGender = value ?? '';
               });
-              _loadSavedUsers();
+              EasyDebounce.debounce('genderDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
             },
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
@@ -246,51 +270,58 @@ class _UserDataPageState extends State<UserDataPage> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: _minAgeController,
-                  decoration: InputDecoration(
-                      labelText: 'Idade mínima',
-                      labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
-                      border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
-                      enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-                      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
-                      suffixIcon: _showClearIcon
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _minAgeController.clear();
-                                _loadSavedUsers();
-                              },
-                            )
-                          : null),
-                  style: const TextStyle(color: Colors.black, fontSize: 16),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    _loadSavedUsers();
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: _showClearIconForMinAge,
+                  builder: (context, value, child) {
+                    return TextField(
+                      controller: _minAgeController,
+                      decoration: InputDecoration(
+                          labelText: 'Idade mínima',
+                          labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                          border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 2.0)),
+                          enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                          focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                          suffixIcon: value
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _minAgeController.clear();
+                                    _loadSavedUsers();
+                                  },
+                                )
+                              : null),
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                      keyboardType: TextInputType.number,
+                    );
                   },
                 ),
               ),
               const SizedBox(width: 8.0),
               Expanded(
-                child: TextField(
-                  controller: _maxAgeController,
-                  decoration: InputDecoration(
-                      labelText: 'Idade máxima',
-                      labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 6.0)),
-                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          _maxAgeController.clear();
-                          _loadSavedUsers();
-                        },
-                      )),
-                  style: const TextStyle(color: Colors.black, fontSize: 16),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    _loadSavedUsers();
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: _showClearIconForMaxAge,
+                  builder: (context, value, child) {
+                    return TextField(
+                      controller: _maxAgeController,
+                      decoration: InputDecoration(
+                        labelText: 'Idade máxima',
+                        labelStyle: TextStyle(color: Colors.black, fontSize: 16),
+                        border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 6.0)),
+                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                        suffixIcon: value
+                            ? IconButton(
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  _maxAgeController.clear();
+                                  _loadSavedUsers();
+                                },
+                              )
+                            : null,
+                      ),
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                      keyboardType: TextInputType.number,
+                    );
                   },
                 ),
               ),
@@ -300,23 +331,18 @@ class _UserDataPageState extends State<UserDataPage> {
       ),
     );
   }
-  
 
   // Constrói a lista de usuários aleatórios ou exibe um indicador de progresso
   Widget _showUserData() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     } else if (_filteredUsers.isEmpty) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Nenhum usuário encontrado'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadUserData,
-              child: const Text('Tentar novamente'),
-            ),
+            Text('Nenhum usuário encontrado'),
+            SizedBox(height: 16),
           ],
         ),
       );
