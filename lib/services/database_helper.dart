@@ -1,5 +1,4 @@
 import 'package:api_dados/main.dart';
-import 'package:api_dados/notifications.dart';
 import 'package:sqflite/sqflite.dart'; // Importa a biblioteca sqflite para manipulação de banco de dados SQLite
 import 'package:path/path.dart'; // Importa a biblioteca path para manipulação de caminhos de arquivos
 import 'package:api_dados/models/person_model.dart'; // Importa o modelo PersonModel
@@ -57,20 +56,7 @@ class DatabaseHelper {
       return 0;
     }
   }
-
-  Future<void> saveNotificationMessage(NotificationMessage message) async {
-  final db = await instance.database;
-  await db.insert('notifications', message.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
-}
-
-Future<List<NotificationMessage>> getNotificationMessages() async {
-  final db = await instance.database;
-  final List<Map<String, dynamic>> maps = await db.query('notifications');
-  return List.generate(maps.length, (i) {
-    return NotificationMessage.fromMap(maps[i]);
-  });
-}
-
+  
 
   // Método para obter um usuário pelo ID
   Future<PersonModel?> getUserId(String id) async {

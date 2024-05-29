@@ -1,12 +1,13 @@
+import 'package:api_dados/notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/models/filter_model.dart';
 import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/filter/services.dart';
 import 'package:api_dados/views/user_detail_page_view.dart';
+import 'package:remove_diacritic/remove_diacritic.dart';
 import 'package:easy_debounce/easy_debounce.dart';
-import 'package:badges/badges.dart';
-import 'package:intl/intl.dart';
+import 'package:badges/badges.dart' as badges;
 
 // Declaração da classe UserDataPage como um StatefulWidget
 class UserDataPage extends StatefulWidget {
@@ -14,17 +15,24 @@ class UserDataPage extends StatefulWidget {
   _UserDataPageState createState() => _UserDataPageState();
 }
 
-String accents(String str) {
-  return str
-      .replaceAll(
-        RegExp(r'[áàãâä]'),
-        'a',
-      )
-      .replaceAll(RegExp(r'[éèêë]'), 'e')
-      .replaceAll(RegExp(r'[íìîï]'), 'i')
-      .replaceAll(RegExp(r'[óòõôö]'), 'o')
-      .replaceAll(RegExp(r'[úùûü]'), 'u')
-      .replaceAll(RegExp(r'[ç]'), 'c');
+accents() {
+
+  print(removeDiacritics('ÀÁÂÃÄÅǺĀĂĄǍΑΆẢẠẦẪẨẬẰẮẴẲẶА')); // prints: 'AAAAAAAAAAAΑAAAAAAAAAAAAА'
+  print(removeDiacritics('àáâãåǻāăąǎαάảạầấẫẩậằắẵẳặа')); // prints: 'aaaaaaaaaaaaaaaaaaaaaaaaа'
+  print(removeDiacritics('ÈÉÊËĒĔĖĘĚΕΈẼẺẸỀẾỄỂỆЕ')); // prints: 'EEEEEEEEEΕEEEEEEEEEЕ'
+  print(removeDiacritics('èéêëēĕėęěẽẻẹềếễểệе')); // prints: 'eeeeeeeeeeeeeeeeeе'
+  print(removeDiacritics('ÌÍÎÏĨĪĬǏĮİΊΙΪỈỊ')); // prints: 'IIIIIIIIIIIΙIII'
+  print(removeDiacritics('ìíîïĩīĭǐįıỉịї')); // prints: 'iiiiiiiiiiiii'
+  print(removeDiacritics('ÒÓÔÕŌŎǑŐƠØǾΟΌỎỌỒỐỖỔỘỜỚỠỞỢО')); // prints: 'OOOOOOOOOOOΟOOOOOOOOOOOOOО'
+  print(removeDiacritics('òóôõōŏǒőơøǿοόỏọồốỗổộờớỡởợо')); // prints: 'oooooooooooοoooooooooooooо'
+  print(removeDiacritics('ÙÚÛŨŪŬŮŰŲƯǓǕǗǙǛŨỦỤỪỨỮỬỰ')); // prints: 'UUUUUUUUUUUUUUUUUUUUUUU'
+  print(removeDiacritics('ùúûũūŭůűųưǔǖǘǚǜủụừứữửự')); // prints: 'uuuuuuuuuuuuuuuuuuuuuu'
+  print(removeDiacritics('ÝŸŶΥΎΫỲỸỶỴ')); // prints: 'YYYΥYYYYYY'
+  print(removeDiacritics('ýÿŷỳỹỷỵ')); // prints: 'yyyyyyy'
+  print(removeDiacritics('ĹĻĽĿŁ')); // prints: 'LLLLL'
+  print(removeDiacritics('ĺļľŀł')); // prints: 'lllll'
+  print(removeDiacritics('ÇĆĈĊČ')); // prints: 'CCCCC'
+  print(removeDiacritics('çćĉċč')); // prints: 'ccccc'
 }
 
 // Estado associado ao UserDataPage
@@ -33,11 +41,15 @@ class _UserDataPageState extends State<UserDataPage> {
   List<PersonModel> _filteredUsers = [];
   List<PersonModel> _savedUsers = [];
 
+  PersonModel? _selectedUser;
+
   // Variável para controlar o estado de carregamento
   bool _isLoading = false;
 
   // Índice da aba selecionada no BottomNavigationBar
   int _selectedIndex = 0;
+
+  int _savedDataCount = 0;
 
   // Controladores de texto para os campos de filtro
   final TextEditingController _filterController = TextEditingController();
@@ -123,14 +135,15 @@ class _UserDataPageState extends State<UserDataPage> {
 
     // Filtrar os usuários para que apenas os que começam com a primeira letra digitada sejam exibidos
     if (_filterController.text.isNotEmpty) {
-      final searchText = accents(_filterController.text.toUpperCase());
-      _savedUsers = users.where((user) => accents(user.name.toUpperCase()).contains(searchText)).toList();
+      final searchText = removeDiacritics(_filterController.text.toUpperCase());
+      _savedUsers = users.where((user) => removeDiacritics(user.name.toUpperCase()).contains(searchText)).toList();
     } else {
       _savedUsers = users; // Atualizar a lista de usuários salvos
     }
 
     setState(() {
       _isLoading = false; // Definir estado de carregamento como falso
+      _savedDataCount = 0;
     });
   }
 
@@ -141,6 +154,12 @@ class _UserDataPageState extends State<UserDataPage> {
       if (index == 1) {
         _loadSavedUsers(); // Carregar usuários salvos ao selecionar a aba correspondente
       }
+    });
+  }
+
+  void _incrementSavedDataCount() {
+    setState(() {
+      _savedDataCount++;
     });
   }
 
@@ -185,14 +204,14 @@ class _UserDataPageState extends State<UserDataPage> {
     );
   }
 
-  // Método para salvar um usuário no banco de dados
   Future<void> _saveUser(PersonModel user) async {
     final dbHelper = DatabaseHelper.instance;
     await dbHelper.createUser(user); // Salvar usuário no banco de dados
-    // _showNotificationScreen(user.name);
+
     setState(() {
       _filteredUsers.removeWhere((u) => u.id == user.id); // Remover usuário da lista de filtrados
       _savedUsers.add(user); // Adicionar usuário à lista de salvos
+      _incrementSavedDataCount(); // Incrementar o contador de usuários salvos
     });
   }
 
@@ -438,6 +457,9 @@ class _UserDataPageState extends State<UserDataPage> {
                   title: Text(user.name),
                   subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
                   onTap: () async {
+                    setState(() {
+                      _selectedUser = user; // Armazena o usuário selecionado
+                    });
                     final updatedUser = await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => UserDetailPage(user: user, showSaveButton: true),
@@ -446,6 +468,7 @@ class _UserDataPageState extends State<UserDataPage> {
                     if (updatedUser != null && updatedUser is PersonModel) {
                       setState(() {
                         _savedUsers[index] = updatedUser;
+                        _selectedUser = updatedUser;
                       });
                     }
                   },
@@ -457,27 +480,6 @@ class _UserDataPageState extends State<UserDataPage> {
       );
     }
   }
-
-// Método para construir a tela de notificação
-  // void _showNotificationScreen(String userName) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: Text('Usuário Salvo'),
-  //         content: Text('O usuário $userName foi salvo com sucesso.'),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Text('Fechar'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -495,30 +497,24 @@ class _UserDataPageState extends State<UserDataPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('User Data'), // Título da AppBar
-        // actions: [
-        //   Badge(
-        //     badgeContent: Text(
-        //       '$_savedCount', // Use a variável que armazena a contagem de usuários salvos ou editados
-        //       style: TextStyle(color: Colors.white),
-        //     ),
-        //     badgeColor: Colors.red,
-        //     position: BadgePosition.topEnd(top: 0, end: 0),
-        //     child: IconButton(
-        //       icon: Icon(Icons.notification_add),
-        //       onPressed: () {},
-        //     ),
-        //   ),
-        // ],
       ),
       body: pages.elementAt(_selectedIndex), // Exibir a página correspondente à aba selecionada
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Show Data', // Rótulo da primeira aba
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.save),
+            icon: _savedDataCount > 0
+                ? badges.Badge(
+                    badgeContent: Text('$_savedDataCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                        )),
+                    child: Icon(Icons.save),
+                  )
+                : Icon(Icons.save),
             label: 'Saved Data', // Rótulo da segunda aba
           ),
         ],
