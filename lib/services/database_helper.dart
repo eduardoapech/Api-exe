@@ -1,4 +1,5 @@
 import 'package:api_dados/main.dart';
+import 'package:remove_diacritic/remove_diacritic.dart';
 import 'package:sqflite/sqflite.dart'; // Importa a biblioteca sqflite para manipulação de banco de dados SQLite
 import 'package:path/path.dart'; // Importa a biblioteca path para manipulação de caminhos de arquivos
 import 'package:api_dados/models/person_model.dart'; // Importa o modelo PersonModel
@@ -9,6 +10,25 @@ class DatabaseHelper {
   // Singleton para garantir que apenas uma instância do DatabaseHelper seja criada
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
+
+  accents() {
+  print(removeDiacritics('ÀÁÂÃÄÅǺĀĂĄǍΑΆẢẠẦẪẨẬẰẮẴẲẶА')); // prints: 'AAAAAAAAAAAΑAAAAAAAAAAAAА'
+  print(removeDiacritics('àáâãåǻāăąǎαάảạầấẫẩậằắẵẳặа')); // prints: 'aaaaaaaaaaaaaaaaaaaaaaaaа'
+  print(removeDiacritics('ÈÉÊËĒĔĖĘĚΕΈẼẺẸỀẾỄỂỆЕ')); // prints: 'EEEEEEEEEΕEEEEEEEEEЕ'
+  print(removeDiacritics('èéêëēĕėęěẽẻẹềếễểệе')); // prints: 'eeeeeeeeeeeeeeeeeе'
+  print(removeDiacritics('ÌÍÎÏĨĪĬǏĮİΊΙΪỈỊ')); // prints: 'IIIIIIIIIIIΙIII'
+  print(removeDiacritics('ìíîïĩīĭǐįıỉịї')); // prints: 'iiiiiiiiiiiii'
+  print(removeDiacritics('ÒÓÔÕŌŎǑŐƠØǾΟΌỎỌỒỐỖỔỘỜỚỠỞỢО')); // prints: 'OOOOOOOOOOOΟOOOOOOOOOOOOOО'
+  print(removeDiacritics('òóôõōŏǒőơøǿοόỏọồốỗổộờớỡởợо')); // prints: 'oooooooooooοoooooooooooooо'
+  print(removeDiacritics('ÙÚÛŨŪŬŮŰŲƯǓǕǗǙǛŨỦỤỪỨỮỬỰ')); // prints: 'UUUUUUUUUUUUUUUUUUUUUUU'
+  print(removeDiacritics('ùúûũūŭůűųưǔǖǘǚǜủụừứữửự')); // prints: 'uuuuuuuuuuuuuuuuuuuuuu'
+  print(removeDiacritics('ÝŸŶΥΎΫỲỸỶỴ')); // prints: 'YYYΥYYYYYY'
+  print(removeDiacritics('ýÿŷỳỹỷỵ')); // prints: 'yyyyyyy'
+  print(removeDiacritics('ĹĻĽĿŁ')); // prints: 'LLLLL'
+  print(removeDiacritics('ĺļľŀł')); // prints: 'lllll'
+  print(removeDiacritics('ÇĆĈĊČ')); // prints: 'CCCCC'
+  print(removeDiacritics('çćĉċč')); // prints: 'ccccc'
+}
 
   // Construtor privado para o singleton
   DatabaseHelper._init();
@@ -43,6 +63,7 @@ class DatabaseHelper {
     );
     ''';
     await db.execute(sql); // Executa a criação da tabela
+    
   }
   
 
@@ -50,7 +71,9 @@ class DatabaseHelper {
   Future<int> createUser(PersonModel user) async {
     try {
       final db = await database;
-      return await db.insert('users', user.toMap()); // Insere o usuário na tabela 'users'
+      final Map<String, dynamic> userData = user.toMap();
+      userData['nameWithoutAccent'] = removeDiacritics(user.name.toUpperCase());
+      return await db.insert('users', userData); // Insere o usuário na tabela 'users'
     } catch (e) {
       print('Error inserting user: $e');
       return 0;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:api_dados/notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/models/filter_model.dart';
@@ -15,25 +17,6 @@ class UserDataPage extends StatefulWidget {
   _UserDataPageState createState() => _UserDataPageState();
 }
 
-accents() {
-  print(removeDiacritics('ÀÁÂÃÄÅǺĀĂĄǍΑΆẢẠẦẪẨẬẰẮẴẲẶА')); // prints: 'AAAAAAAAAAAΑAAAAAAAAAAAAА'
-  print(removeDiacritics('àáâãåǻāăąǎαάảạầấẫẩậằắẵẳặа')); // prints: 'aaaaaaaaaaaaaaaaaaaaaaaaа'
-  print(removeDiacritics('ÈÉÊËĒĔĖĘĚΕΈẼẺẸỀẾỄỂỆЕ')); // prints: 'EEEEEEEEEΕEEEEEEEEEЕ'
-  print(removeDiacritics('èéêëēĕėęěẽẻẹềếễểệе')); // prints: 'eeeeeeeeeeeeeeeeeе'
-  print(removeDiacritics('ÌÍÎÏĨĪĬǏĮİΊΙΪỈỊ')); // prints: 'IIIIIIIIIIIΙIII'
-  print(removeDiacritics('ìíîïĩīĭǐįıỉịї')); // prints: 'iiiiiiiiiiiii'
-  print(removeDiacritics('ÒÓÔÕŌŎǑŐƠØǾΟΌỎỌỒỐỖỔỘỜỚỠỞỢО')); // prints: 'OOOOOOOOOOOΟOOOOOOOOOOOOOО'
-  print(removeDiacritics('òóôõōŏǒőơøǿοόỏọồốỗổộờớỡởợо')); // prints: 'oooooooooooοoooooooooooooо'
-  print(removeDiacritics('ÙÚÛŨŪŬŮŰŲƯǓǕǗǙǛŨỦỤỪỨỮỬỰ')); // prints: 'UUUUUUUUUUUUUUUUUUUUUUU'
-  print(removeDiacritics('ùúûũūŭůűųưǔǖǘǚǜủụừứữửự')); // prints: 'uuuuuuuuuuuuuuuuuuuuuu'
-  print(removeDiacritics('ÝŸŶΥΎΫỲỸỶỴ')); // prints: 'YYYΥYYYYYY'
-  print(removeDiacritics('ýÿŷỳỹỷỵ')); // prints: 'yyyyyyy'
-  print(removeDiacritics('ĹĻĽĿŁ')); // prints: 'LLLLL'
-  print(removeDiacritics('ĺļľŀł')); // prints: 'lllll'
-  print(removeDiacritics('ÇĆĈĊČ')); // prints: 'CCCCC'
-  print(removeDiacritics('çćĉċč')); // prints: 'ccccc'
-}
-
 // Estado associado ao UserDataPage
 class _UserDataPageState extends State<UserDataPage> {
   // Listas para armazenar usuários filtrados e salvos
@@ -41,6 +24,8 @@ class _UserDataPageState extends State<UserDataPage> {
   List<PersonModel> _savedUsers = [];
 
   PersonModel? _selectedUser;
+
+  Timer? _debounceTimer;
 
   // Variável para controlar o estado de carregamento
   bool _isLoading = false;
@@ -94,6 +79,24 @@ class _UserDataPageState extends State<UserDataPage> {
     super.dispose();
   }
 
+  void _startDebounceTimer(void Function() callback) {
+    // Cancela o timer anterior, se existir
+    _debounceTimer?.cancel();
+
+    // Inicia um novo timer com um atraso de 500 milissegundos
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      callback();
+    });
+  }
+void _handleFilterChange(String newValue) {
+  // Aqui você pode fazer o que precisa com o valor do campo de filtro
+  print('Valor do filtro: $newValue');
+
+  // Por exemplo, você pode chamar uma função para carregar os usuários com base no novo filtro
+  _startDebounceTimer(() {
+    _loadSavedUsers();
+  });
+}
   // Método para carregar usuários aleatórios
   Future<void> _loadUserData() async {
     setState(() {
@@ -132,7 +135,13 @@ class _UserDataPageState extends State<UserDataPage> {
     // Filtrar os usuários para que apenas os que começam com a primeira letra digitada sejam exibidos
     if (_filterController.text.isNotEmpty) {
       final searchText = removeDiacritics(_filterController.text.toUpperCase());
-      _savedUsers = users.where((user) => removeDiacritics(user.name.toUpperCase())[0] == searchText).toList();
+      _savedUsers = users
+          .where((user) =>
+              removeDiacritics(user.name.toUpperCase()).startsWith(searchText) ||
+              removeDiacritics(user.name.toUpperCase()).contains(
+                searchText,
+              ))
+          .toList();
     } else {
       _savedUsers = users; // Atualizar a lista de usuários salvos
     }
@@ -241,10 +250,9 @@ class _UserDataPageState extends State<UserDataPage> {
                       : null,
                 ),
                 style: const TextStyle(color: Colors.black, fontSize: 16),
-                onChanged: (_) async {
-                  await Future.delayed(Duration(seconds: 1));
-                  _loadSavedUsers();
-                },
+                onChanged: _handleFilterChange,
+                  
+                
               );
             },
           ),
@@ -266,10 +274,13 @@ class _UserDataPageState extends State<UserDataPage> {
                 child: Text('Female'),
               ),
             ],
-            onChanged: (value) {
+            onChanged: (value) async {
+              await Future.delayed(Duration(seconds: 1));
+              _loadSavedUsers();
               setState(() {
                 _selectedGender = value ?? '';
               });
+              _loadSavedUsers();
             },
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
