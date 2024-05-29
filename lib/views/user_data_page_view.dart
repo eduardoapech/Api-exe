@@ -6,7 +6,7 @@ import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/filter/services.dart';
 import 'package:api_dados/views/user_detail_page_view.dart';
 import 'package:remove_diacritic/remove_diacritic.dart';
-import 'package:easy_debounce/easy_debounce.dart';
+
 import 'package:badges/badges.dart' as badges;
 
 // Declaração da classe UserDataPage como um StatefulWidget
@@ -16,7 +16,6 @@ class UserDataPage extends StatefulWidget {
 }
 
 accents() {
-
   print(removeDiacritics('ÀÁÂÃÄÅǺĀĂĄǍΑΆẢẠẦẪẨẬẰẮẴẲẶА')); // prints: 'AAAAAAAAAAAΑAAAAAAAAAAAAА'
   print(removeDiacritics('àáâãåǻāăąǎαάảạầấẫẩậằắẵẳặа')); // prints: 'aaaaaaaaaaaaaaaaaaaaaaaaа'
   print(removeDiacritics('ÈÉÊËĒĔĖĘĚΕΈẼẺẸỀẾỄỂỆЕ')); // prints: 'EEEEEEEEEΕEEEEEEEEEЕ'
@@ -74,15 +73,12 @@ class _UserDataPageState extends State<UserDataPage> {
     super.initState();
     _filterController.addListener(() {
       _showClearIconforfilter.value = _filterController.text.isNotEmpty;
-      EasyDebounce.debounce('filterDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
     });
     _minAgeController.addListener(() {
       _showClearIconForMinAge.value = _minAgeController.text.isNotEmpty;
-      EasyDebounce.debounce('minAgeDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
     });
     _maxAgeController.addListener(() {
       _showClearIconForMaxAge.value = _maxAgeController.text.isNotEmpty;
-      EasyDebounce.debounce('maxAgeDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
     });
   }
 
@@ -136,7 +132,7 @@ class _UserDataPageState extends State<UserDataPage> {
     // Filtrar os usuários para que apenas os que começam com a primeira letra digitada sejam exibidos
     if (_filterController.text.isNotEmpty) {
       final searchText = removeDiacritics(_filterController.text.toUpperCase());
-      _savedUsers = users.where((user) => removeDiacritics(user.name.toUpperCase()).contains(searchText)).toList();
+      _savedUsers = users.where((user) => removeDiacritics(user.name.toUpperCase())[0] == searchText).toList();
     } else {
       _savedUsers = users; // Atualizar a lista de usuários salvos
     }
@@ -245,6 +241,10 @@ class _UserDataPageState extends State<UserDataPage> {
                       : null,
                 ),
                 style: const TextStyle(color: Colors.black, fontSize: 16),
+                onChanged: (_) async {
+                  await Future.delayed(Duration(seconds: 1));
+                  _loadSavedUsers();
+                },
               );
             },
           ),
@@ -270,7 +270,6 @@ class _UserDataPageState extends State<UserDataPage> {
               setState(() {
                 _selectedGender = value ?? '';
               });
-              EasyDebounce.debounce('genderDebounce', const Duration(milliseconds: 500), () => _loadSavedUsers());
             },
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
@@ -310,6 +309,10 @@ class _UserDataPageState extends State<UserDataPage> {
                                 )
                               : null),
                       style: const TextStyle(color: Colors.black, fontSize: 16),
+                      onChanged: (_) async {
+                        await Future.delayed(Duration(seconds: 1));
+                        _loadSavedUsers();
+                      },
                       keyboardType: TextInputType.number,
                     );
                   },
@@ -339,6 +342,10 @@ class _UserDataPageState extends State<UserDataPage> {
                             : null,
                       ),
                       style: const TextStyle(color: Colors.black, fontSize: 16),
+                      onChanged: (_) async {
+                        await Future.delayed(Duration(seconds: 1));
+                        _loadSavedUsers();
+                      },
                       keyboardType: TextInputType.number,
                     );
                   },
