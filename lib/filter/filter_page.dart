@@ -4,7 +4,7 @@ import 'package:api_dados/models/filter_model.dart';
 class FilterPage extends StatefulWidget {
   final FilterModel filter;
 
-  FilterPage({required this.filter});
+  const FilterPage({super.key, required this.filter});
 
   @override
   _FilterPageState createState() => _FilterPageState();
@@ -21,35 +21,35 @@ class _FilterPageState extends State<FilterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Filter Users'),
+        title: const Text('Filter Users'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
               TextFormField(
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: 'Name'),
                 onSaved: (value) {
                   _name = value;
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Gender'),
+                decoration: const InputDecoration(labelText: 'Gender'),
                 onSaved: (value) {
                   _gender = value;
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Min Age'),
+                decoration: const InputDecoration(labelText: 'Min Age'),
                 keyboardType: TextInputType.number,
                 onSaved: (value) {
                   _minAge = int.tryParse(value ?? '');
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Max Age'),
+                decoration: const InputDecoration(labelText: 'Max Age'),
                 keyboardType: TextInputType.number,
                 onSaved: (value) {
                   _maxAge = int.tryParse(value ?? '');
@@ -64,7 +64,7 @@ class _FilterPageState extends State<FilterPage> {
                   widget.filter.maxAge = _maxAge;
                   Navigator.pop(context, widget.filter);
                 },
-                child: Text('Apply Filters'),
+                child: const Text('Apply Filters'),
               ),
             ],
           ),

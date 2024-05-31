@@ -8,7 +8,7 @@ class UserDetailPage extends StatefulWidget {
   final PersonModel user; // Usuário cujos detalhes serão exibidos
   final bool showSaveButton; // Flag para mostrar ou não o botão de salvar
 
-  UserDetailPage({required this.user, this.showSaveButton = false}); // Construtor
+  const UserDetailPage({super.key, required this.user, this.showSaveButton = false}); // Construtor
 
   @override
   _UserDetailPageState createState() => _UserDetailPageState();
@@ -28,7 +28,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(''), // Define o título da AppBar com o nome do usuário
+        title: const Text(''), // Define o título da AppBar com o nome do usuário
         actions: [
           IconButton(
             icon: const Icon(Icons.edit), // Ícone de edição
@@ -98,12 +98,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
             backgroundImage: NetworkImage(imageUrl),
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 20,
         ),
         Text(
           name,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         )
       ],
     );
@@ -120,7 +120,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             ),
             borderRadius: BorderRadius.circular(10.0),
             color: Colors.white),
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -142,7 +142,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   Widget _buildUserDetailTile(IconData icon, String label, String value) {
     return ListTile(
       leading: Icon(icon), // Ícone correspondente ao detalhe
-      title: Text('$label: $value', style: TextStyle(fontSize: 18)), // Label e valor do detalhe
+      title: Text('$label: $value', style: const TextStyle(fontSize: 18)), // Label e valor do detalhe
     );
   }
 
@@ -163,10 +163,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
         )), // Define a cor da borda
         overlayColor: WidgetStateProperty.resolveWith<Color?>(
           (Set<WidgetState> states) {
-            if (states.contains(WidgetState.hovered))
+            if (states.contains(WidgetState.hovered)) {
               return Colors.green.withOpacity(
                 0.2,
               ); // Define a cor do overlay quando o botão está sendo pressionado
+            }
             if (states.contains(WidgetState.focused) ||
                 states.contains(
                   WidgetState.pressed,
@@ -205,10 +206,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 )), // Define a cor da borda
                 overlayColor: WidgetStateProperty.resolveWith<Color?>(
                   (Set<WidgetState> states) {
-                    if (states.contains(WidgetState.hovered))
+                    if (states.contains(WidgetState.hovered)) {
                       return Colors.red.withOpacity(
                         0.2,
                       ); // Define a cor do overlay quando o botão está sendo pressionado
+                    }
                     if (states.contains(WidgetState.focused) ||
                         states.contains(
                           WidgetState.pressed,
@@ -239,17 +241,19 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   (Set<WidgetState> states) {
                     if (states.contains(
                       WidgetState.hovered,
-                    ))
+                    )) {
                       return Colors.red.withOpacity(
                         0.2,
                       ); // Define a cor do overlay quando o botão está sendo pressionado
+                    }
                     if (states.contains(
                           WidgetState.focused,
                         ) ||
-                        states.contains(WidgetState.pressed))
+                        states.contains(WidgetState.pressed)) {
                       return Colors.green.withOpacity(
                         0.4,
                       ); // Define a cor do overlay quando o botão está em foco
+                    }
                     return null;
                   },
                 ),

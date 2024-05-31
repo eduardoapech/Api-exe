@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class Time extends StatefulWidget {
+  const Time({super.key});
+
   @override
-  State<StatefulWidget> createState() => new _TimeState();
+  State<StatefulWidget> createState() => _TimeState();
 }
 
 class _TimeState extends State<Time> {
@@ -29,7 +31,7 @@ class _TimeState extends State<Time> {
 
   @override
   Widget build(BuildContext context) {
-    return new FlutterLogo(
+    return FlutterLogo(
       size: 200.0,
       textColor: Colors.white, // Assuming Palette.white is a custom color
       style: _logoStyle,

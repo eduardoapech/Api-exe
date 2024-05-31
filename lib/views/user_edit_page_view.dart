@@ -7,7 +7,7 @@ import 'package:api_dados/widgets/cs_text_field.dart';
 class UserEditPage extends StatefulWidget {
   final PersonModel user;
 
-  UserEditPage({required this.user});
+  const UserEditPage({super.key, required this.user});
 
   @override
   _UserEditPageState createState() => _UserEditPageState();
@@ -105,16 +105,16 @@ class _UserEditPageState extends State<UserEditPage> {
     var response = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Confirmação'),
+            title: const Text('Confirmação'),
             content: Text(message),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false), // Retorna false para cancelar a ação
-                child: Text('Não'),
+                child: const Text('Não'),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true), // Retorna true para confirmar a ação
-                child: Text('Sim'),
+                child: const Text('Sim'),
               ),
             ],
           ),
@@ -142,7 +142,7 @@ class _UserEditPageState extends State<UserEditPage> {
       final dbHelper = DatabaseHelper.instance;
       await dbHelper.updateUser(updatedUser);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cadastro atualizado com sucesso')),
+        const SnackBar(content: Text('Cadastro atualizado com sucesso')),
       );
       Navigator.of(context).pop(updatedUser); // Use Navigator.of(context).pop para garantir que a navegação ocorra corretamente
     }
@@ -154,9 +154,9 @@ class _UserEditPageState extends State<UserEditPage> {
       onPressed: hasModifications ? () => _saveUser(context) : null,
       style: TextButton.styleFrom(
         foregroundColor: Colors.white, // Cor do texto do botão quando habilitado
-        backgroundColor: Color.fromARGB(255, 40, 51, 59), // Cor de fundo do botão quando habilitado
+        backgroundColor: const Color.fromARGB(255, 40, 51, 59), // Cor de fundo do botão quando habilitado
         disabledForegroundColor: Colors.grey.withOpacity(0.38), // Cor do texto do botão quando desabilitado
-        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0), // Padding do botão
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0), // Padding do botão
       ),
       child: const Text('Salvar Usuário'), // Texto do botão
     );
@@ -169,7 +169,7 @@ class _UserEditPageState extends State<UserEditPage> {
       children: [
         DropdownButtonFormField<String>(
           value: _gender.isNotEmpty ? _gender : null,
-          items: [
+          items: const [
             DropdownMenuItem(
               value: 'outro',
               child: Text(
@@ -198,14 +198,14 @@ class _UserEditPageState extends State<UserEditPage> {
               _gender = value ?? '';
             });
           },
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             border: OutlineInputBorder( 
               borderSide: BorderSide(color: Colors.black, width: 2.0)
             ),
             labelText: 'Gênero',
             labelStyle: TextStyle(color: Colors.black, fontSize: 16),
           ),
-          style: TextStyle(color: Colors.black, fontSize: 16),
+          style: const TextStyle(color: Colors.black, fontSize: 16),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Por favor, selecione um gênero';
@@ -213,7 +213,7 @@ class _UserEditPageState extends State<UserEditPage> {
             return null;
           },
         ),
-        SizedBox(
+        const SizedBox(
           height: 8.0,
         )
       ],
@@ -231,10 +231,10 @@ class _UserEditPageState extends State<UserEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Editar Usuário'),
+          title: const Text('Editar Usuário'),
         ),
         body: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
             child: ListView(

@@ -9,14 +9,14 @@ class CsTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
 
   const CsTextField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.controller,
     required this.validator,
     this.keyboardType = TextInputType.text,
     this.inputFormatters,
     required Null Function(dynamic value) onChanged,
-  }) : super(key: key);
+  });
 
   InputDecoration _inputDecoration({
     required String labelText,
@@ -25,10 +25,10 @@ class CsTextField extends StatelessWidget {
   }) {
     return InputDecoration(
       labelText: labelText,
-      labelStyle: TextStyle(fontSize: 16),
+      labelStyle: const TextStyle(fontSize: 16),
 
-      border: OutlineInputBorder(),
-      contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+      border: const OutlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       // Define o estilo do texto de entrada
       // Aqui, definimos o tamanho da fonte para 16
       // Você pode ajustar o valor conforme necessário
@@ -47,10 +47,10 @@ class CsTextField extends StatelessWidget {
         controller: controller,
         decoration: _inputDecoration(
           labelText: labelText,
-          border: OutlineInputBorder( 
+          border: const OutlineInputBorder( 
             borderSide: BorderSide(color: Colors.black, width: 2.0)
           ),
-          contentPadding: EdgeInsets.all(15.0),
+          contentPadding: const EdgeInsets.all(15.0),
         ),
         validator: validator,
         keyboardType: keyboardType,

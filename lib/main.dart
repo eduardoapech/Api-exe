@@ -12,20 +12,22 @@ late final String age;
 
 // Função principal que inicializa o aplicativo
 void main() {
-  runApp(MyApp()); // Executa o aplicativo, iniciando pelo widget MyApp
+  runApp(const MyApp()); // Executa o aplicativo, iniciando pelo widget MyApp
 }
 
 // Classe MyApp, que é o widget raiz do aplicativo
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '', // Define o título do aplicativo
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: TextTheme( ) // Define o tema do aplicativo, com a cor primária azul
+        textTheme: const TextTheme( ) // Define o tema do aplicativo, com a cor primária azul
       ),
-      home: UserDataPage(), // Define a página inicial do aplicativo como UserDataPage
+      home: const UserDataPage(), // Define a página inicial do aplicativo como UserDataPage
     );
   }
 }

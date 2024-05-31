@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:api_dados/notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/models/filter_model.dart';
 import 'package:api_dados/models/person_model.dart';
@@ -13,15 +12,40 @@ import 'package:badges/badges.dart' as badges;
 
 // Declaração da classe UserDataPage como um StatefulWidget
 class UserDataPage extends StatefulWidget {
+  const UserDataPage({super.key});
+
   @override
   _UserDataPageState createState() => _UserDataPageState();
 }
+
+// like() {
+//   print(removeDiacritics('ÀÁÂÃÄÅǺĀĂĄǍΑΆẢẠẦẪẨẬẰẮẴẲẶА')); // prints: 'AAAAAAAAAAAΑAAAAAAAAAAAAА'
+//   print(removeDiacritics('àáâãåǻāăąǎαάảạầấẫẩậằắẵẳặа')); // prints: 'aaaaaaaaaaaaaaaaaaaaaaaaа'
+//   print(removeDiacritics('ÈÉÊËĒĔĖĘĚΕΈẼẺẸỀẾỄỂỆЕ')); // prints: 'EEEEEEEEEΕEEEEEEEEEЕ'
+//   print(removeDiacritics('èéêëēĕėęěẽẻẹềếễểệе')); // prints: 'eeeeeeeeeeeeeeeeeе'
+//   print(removeDiacritics('ÌÍÎÏĨĪĬǏĮİΊΙΪỈỊ')); // prints: 'IIIIIIIIIIIΙIII'
+//   print(removeDiacritics('ìíîïĩīĭǐįıỉịї')); // prints: 'iiiiiiiiiiiii'
+//   print(removeDiacritics('ÒÓÔÕŌŎǑŐƠØǾΟΌỎỌỒỐỖỔỘỜỚỠỞỢО')); // prints: 'OOOOOOOOOOOΟOOOOOOOOOOOOOО'
+//   print(removeDiacritics('òóôõōŏǒőơøǿοόỏọồốỗổộờớỡởợо')); // prints: 'oooooooooooοoooooooooooooо'
+//   print(removeDiacritics('ÙÚÛŨŪŬŮŰŲƯǓǕǗǙǛŨỦỤỪỨỮỬỰ')); // prints: 'UUUUUUUUUUUUUUUUUUUUUUU'
+//   print(removeDiacritics('ùúûũūŭůűųưǔǖǘǚǜủụừứữửự')); // prints: 'uuuuuuuuuuuuuuuuuuuuuu'
+//   print(removeDiacritics('ÝŸŶΥΎΫỲỸỶỴ')); // prints: 'YYYΥYYYYYY'
+//   print(removeDiacritics('ýÿŷỳỹỷỵ')); // prints: 'yyyyyyy'
+//   print(removeDiacritics('ĹĻĽĿŁ')); // prints: 'LLLLL'
+//   print(removeDiacritics('ĺļľŀł')); // prints: 'lllll'
+//   print(removeDiacritics('ÇĆĈĊČ')); // prints: 'CCCCC'
+//   print(removeDiacritics('çćĉċč')); // prints: 'ccccc'
+// }
 
 // Estado associado ao UserDataPage
 class _UserDataPageState extends State<UserDataPage> {
   // Listas para armazenar usuários filtrados e salvos
   List<PersonModel> _filteredUsers = [];
   List<PersonModel> _savedUsers = [];
+  List<PersonModel> _allUsers = [];
+
+
+  
 
   PersonModel? _selectedUser;
 
@@ -88,15 +112,17 @@ class _UserDataPageState extends State<UserDataPage> {
       callback();
     });
   }
-void _handleFilterChange(String newValue) {
-  // Aqui você pode fazer o que precisa com o valor do campo de filtro
-  print('Valor do filtro: $newValue');
 
-  // Por exemplo, você pode chamar uma função para carregar os usuários com base no novo filtro
-  _startDebounceTimer(() {
-    _loadSavedUsers();
-  });
-}
+  void _handleFilterChange(String newValue) {
+    // Aqui pode fazer o que precisa com o valor do campo de filtro
+    print('Valor do filtro: $newValue');
+
+    // Chamar a função para carregar os usuários com base no novo filtro
+    _startDebounceTimer(() {
+      _loadSavedUsers();
+    });
+  }
+
   // Método para carregar usuários aleatórios
   Future<void> _loadUserData() async {
     setState(() {
@@ -117,7 +143,6 @@ void _handleFilterChange(String newValue) {
 
     // Configurar filtros com base nos valores dos controladores de texto e no gênero selecionado
     filtroPessoa.name = _filterController.text;
-
     filtroPessoa.minAge = int.tryParse(_minAgeController.text);
     filtroPessoa.maxAge = int.tryParse(_maxAgeController.text);
 
@@ -216,7 +241,7 @@ void _handleFilterChange(String newValue) {
     setState(() {
       _filteredUsers.removeWhere((u) => u.id == user.id); // Remover usuário da lista de filtrados
       _savedUsers.add(user); // Adicionar usuário à lista de salvos
-      _incrementSavedDataCount(); // Incrementar o contador de usuários salvos
+      _savedDataCount++; // Incrementar o contador de usuários salvos
     });
   }
 
@@ -251,8 +276,6 @@ void _handleFilterChange(String newValue) {
                 ),
                 style: const TextStyle(color: Colors.black, fontSize: 16),
                 onChanged: _handleFilterChange,
-                  
-                
               );
             },
           ),
@@ -275,12 +298,12 @@ void _handleFilterChange(String newValue) {
               ),
             ],
             onChanged: (value) async {
-              await Future.delayed(Duration(seconds: 1));
-              _loadSavedUsers();
+              _startDebounceTimer(() {
+                _loadSavedUsers();
+              });
               setState(() {
                 _selectedGender = value ?? '';
               });
-              _loadSavedUsers();
             },
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
@@ -321,8 +344,9 @@ void _handleFilterChange(String newValue) {
                               : null),
                       style: const TextStyle(color: Colors.black, fontSize: 16),
                       onChanged: (_) async {
-                        await Future.delayed(Duration(seconds: 1));
-                        _loadSavedUsers();
+                        _startDebounceTimer(() {
+                          _loadSavedUsers();
+                        });
                       },
                       keyboardType: TextInputType.number,
                     );
@@ -338,13 +362,13 @@ void _handleFilterChange(String newValue) {
                       controller: _maxAgeController,
                       decoration: InputDecoration(
                         labelText: 'Idade máxima',
-                        labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                        border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 6.0)),
-                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-                        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                        labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                        border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 6.0)),
+                        enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                        focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
                         suffixIcon: value
                             ? IconButton(
-                                icon: Icon(Icons.clear),
+                                icon: const Icon(Icons.clear),
                                 onPressed: () {
                                   _maxAgeController.clear();
                                   _loadSavedUsers();
@@ -354,8 +378,9 @@ void _handleFilterChange(String newValue) {
                       ),
                       style: const TextStyle(color: Colors.black, fontSize: 16),
                       onChanged: (_) async {
-                        await Future.delayed(Duration(seconds: 1));
-                        _loadSavedUsers();
+                        _startDebounceTimer(() {
+                          _loadSavedUsers();
+                        });
                       },
                       keyboardType: TextInputType.number,
                     );
@@ -451,6 +476,7 @@ void _handleFilterChange(String newValue) {
                 direction: DismissDirection.endToStart,
                 confirmDismiss: (direction) => showDeleteConfirmationDialog(context, user.id, user.name),
                 onDismissed: (direction) async {
+                  await Future.delayed(Duration(milliseconds: 100));
                   await _deleteUser(user.id);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -514,12 +540,12 @@ void _handleFilterChange(String newValue) {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Data'), // Título da AppBar
+        title: const Text('User Data'), // Título da AppBar
       ),
       body: pages.elementAt(_selectedIndex), // Exibir a página correspondente à aba selecionada
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Show Data', // Rótulo da primeira aba
           ),
@@ -527,12 +553,12 @@ void _handleFilterChange(String newValue) {
             icon: _savedDataCount > 0
                 ? badges.Badge(
                     badgeContent: Text('$_savedDataCount',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                         )),
-                    child: Icon(Icons.save),
+                    child: const Icon(Icons.save),
                   )
-                : Icon(Icons.save),
+                : const Icon(Icons.save),
             label: 'Saved Data', // Rótulo da segunda aba
           ),
         ],
