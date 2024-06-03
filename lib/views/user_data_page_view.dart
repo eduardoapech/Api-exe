@@ -497,7 +497,7 @@ class _UserDataPageState extends State<UserDataPage> {
                     backgroundImage: NetworkImage(user.avatarUrl),
                     radius: 25,
                   ),
-                  title: Text(user.name),
+                  title: Text(removeDiacritics(user.name)),
                   subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
                   onTap: () async {
                     setState(() {

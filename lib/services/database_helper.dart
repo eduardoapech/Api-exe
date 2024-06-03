@@ -1,4 +1,3 @@
-import 'package:api_dados/main.dart';
 import 'package:remove_diacritic/remove_diacritic.dart';
 import 'package:sqflite/sqflite.dart'; // Importa a biblioteca sqflite para manipulação de banco de dados SQLite
 import 'package:path/path.dart'; // Importa a biblioteca path para manipulação de caminhos de arquivos
@@ -67,12 +66,12 @@ class DatabaseHelper {
     try {
       final db = await database;
       return await db.rawInsert(
-          'INSERT INTO users(id, name, name, username, email, avatarUrl, city, '
+          'INSERT INTO users(id, name, name_sem_acento, username, email, avatarUrl, city, '
           'state, gender, age) VALUES(?,?,?,?,?,?,?,?,?,?)',
           [
             user.id,
             user.name,
-            removeDiacritics(user.name),
+            removeDiacritics(user.name), // Salva o nome sem Acento
             user.username,
             user.email,
             user.avatarUrl,
@@ -106,7 +105,7 @@ class DatabaseHelper {
     try {
       final db = await database;
       final result = await db.rawUpdate(
-          'UPDATE users SET name = ?, name = ?, username = ?, email = ?, avatarUrl = ?,'
+          'UPDATE users SET name = ?, name_sem_acento = ?, username = ?, email = ?, avatarUrl = ?,'
           'city = ?, state = ?, gender = ?, age = ? WHERE id = ?',
           [
             user.name,
