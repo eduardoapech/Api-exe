@@ -42,7 +42,6 @@ class _UserDataPageState extends State<UserDataPage> {
   // Listas para armazenar usuários filtrados e salvos
   List<PersonModel> _filteredUsers = [];
   List<PersonModel> _savedUsers = [];
-  List<PersonModel> _allUsers = [];
 
 
   
