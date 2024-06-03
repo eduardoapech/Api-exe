@@ -43,11 +43,6 @@ class _UserDataPageState extends State<UserDataPage> {
   List<PersonModel> _filteredUsers = [];
   List<PersonModel> _savedUsers = [];
 
-
-  
-
-  PersonModel? _selectedUser;
-
   Timer? _debounceTimer;
 
   // Variável para controlar o estado de carregamento
@@ -159,13 +154,10 @@ class _UserDataPageState extends State<UserDataPage> {
     // Filtrar os usuários para que apenas os que começam com a primeira letra digitada sejam exibidos
     if (_filterController.text.isNotEmpty) {
       final searchText = removeDiacritics(_filterController.text.toUpperCase());
-      _savedUsers = users
-          .where((user) =>
-              removeDiacritics(user.name.toUpperCase()).startsWith(searchText) ||
-              removeDiacritics(user.name.toUpperCase()).contains(
-                searchText,
-              ))
-          .toList();
+      _savedUsers = users.where((user) {
+        final nameSemAcento = removeDiacritics(user.name).toUpperCase();
+        return nameSemAcento.startsWith(searchText) || nameSemAcento.contains(searchText);
+      }).toList();
     } else {
       _savedUsers = users; // Atualizar a lista de usuários salvos
     }
@@ -497,11 +489,11 @@ class _UserDataPageState extends State<UserDataPage> {
                     backgroundImage: NetworkImage(user.avatarUrl),
                     radius: 25,
                   ),
-                  title: Text(removeDiacritics(user.name)),
+                  title: Text(user.name),
                   subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
                   onTap: () async {
                     setState(() {
-                      _selectedUser = user; // Armazena o usuário selecionado
+// Armazena o usuário selecionado
                     });
                     final updatedUser = await Navigator.of(context).push(
                       MaterialPageRoute(
@@ -511,7 +503,6 @@ class _UserDataPageState extends State<UserDataPage> {
                     if (updatedUser != null && updatedUser is PersonModel) {
                       setState(() {
                         _savedUsers[index] = updatedUser;
-                        _selectedUser = updatedUser;
                       });
                     }
                   },

@@ -31,7 +31,6 @@ class DatabaseHelper {
   Future _createDB(Database db, int version) async {
     const sql = '''
     CREATE TABLE IF NOT EXISTS users (
-      
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       name_sem_acento TEXT NOT NULL,
@@ -55,10 +54,10 @@ class DatabaseHelper {
     }
     if (oldVersion < newVersion) {
       try {
-        await db.execute('ALTER TABLE users ADD COLUMN name_sem_acento TEXT NOT NULL DEFAULT ' ' ');
+        await db.execute('ALTER TABLE users ADD COLUMN name_sem_acento TEXT NOT NULL DEFAULT \' \' ');
       } catch (_) {}
     }
-    //adicione mais condições conforme necessário para futuras versões
+    // Adicione mais condições conforme necessário para futuras versões
   }
 
   // Método para inserir um usuário no banco de dados
@@ -71,7 +70,7 @@ class DatabaseHelper {
           [
             user.id,
             user.name,
-            removeDiacritics(user.name), // Salva o nome sem Acento
+            removeDiacritics(user.name), // Salva o nome sem acento
             user.username,
             user.email,
             user.avatarUrl,
@@ -137,42 +136,41 @@ class DatabaseHelper {
     }
   }
 
+  void addFilter(StringBuffer whereClause, List<String> whereArgs, String column, String? value, {String operator = '='}) {
+    if (value != null && value.isNotEmpty) {
+      if (whereClause.isNotEmpty) whereClause.write(' AND ');
+      whereClause.write('$column $operator ?');
+      whereArgs.add(value);
+    }
+  }
+
   // Método para obter todos os usuários aplicando filtros
   Future<List<PersonModel>> getAllUsers(FilterModel filtroPessoa) async {
     try {
-      filtroPessoa;
       final db = await database;
-      String whereClause = ''; // Inicializa a cláusula WHERE
-      List<dynamic> whereArgs = []; // Inicializa a lista de argumentos para a cláusula WHERE
+      StringBuffer whereClause = StringBuffer(); // Inicializa a cláusula WHERE
+      List<String> whereArgs = []; // Inicializa a lista de argumentos para a cláusula WHERE
 
-      // Adiciona filtro por nome se especificado
+      // Adiciona filtro por nome sem acento
       if (filtroPessoa.name != null && filtroPessoa.name!.isNotEmpty) {
-        whereClause += 'name LIKE ?';
-        whereArgs.add('%${filtroPessoa.name}%');
+        String nameSemAcento = removeDiacritics(filtroPessoa.name!);
+        addFilter(whereClause, whereArgs, 'name_sem_acento', '%$nameSemAcento%', operator: 'LIKE');
       }
-      // Adiciona filtro por gênero se especificado
-      if (filtroPessoa.gender != null && filtroPessoa.gender!.isNotEmpty) {
-        if (whereClause.isNotEmpty) whereClause += ' AND ';
-        whereClause += 'gender = ?';
-        whereArgs.add(filtroPessoa.gender);
-      }
-      // Adiciona filtro por idade mínima se especificado
+      // Adiciona filtro por gênero
+      addFilter(whereClause, whereArgs, 'gender', filtroPessoa.gender);
+      // Adiciona filtro por idade mínima
       if (filtroPessoa.minAge != null) {
-        if (whereClause.isNotEmpty) whereClause += ' AND ';
-        whereClause += 'age > ?';
-        whereArgs.add(filtroPessoa.minAge);
+        addFilter(whereClause, whereArgs, 'age', filtroPessoa.minAge.toString(), operator: '>');
       }
-      // Adiciona filtro por idade máxima se especificado
+      // Adiciona filtro por idade máxima
       if (filtroPessoa.maxAge != null) {
-        if (whereClause.isNotEmpty) whereClause += ' AND ';
-        whereClause += 'age < ?';
-        whereArgs.add(filtroPessoa.maxAge);
+        addFilter(whereClause, whereArgs, 'age', filtroPessoa.maxAge.toString(), operator: '<');
       }
 
       // Consulta o banco de dados com os filtros aplicados
       final List<Map<String, dynamic>> results = await db.query(
         'users',
-        where: whereClause.isNotEmpty ? whereClause : null,
+        where: whereClause.isNotEmpty ? whereClause.toString() : null,
         whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
       );
 
