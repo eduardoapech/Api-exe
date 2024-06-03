@@ -62,20 +62,30 @@ class DatabaseHelper {
     //adicione mais condições conforme necessário para futuras versões
   }
 
- // Método para inserir um usuário no banco de dados
+  // Método para inserir um usuário no banco de dados
   Future<int> createUser(PersonModel user) async {
     try {
       final db = await database;
-      // Insere o usuário na tabela 'users_with_accents'
-      await db.insert('users_with_accents', user.toMap());
-      // Insere o usuário na tabela 'users_without_accents' com o nome sem acentos
-      return await db.insert('users_without_accents', user.toMap()..['name_without_accents'] = removeDiacritics(user.name));
+      return await db.rawInsert(
+          'INSERT INTO users(id, name, name, username, email, avatarUrl, city, '
+          'state, gender, age) VALUES(?,?,?,?,?,?,?,?,?,?)',
+          [
+            user.id,
+            user.name,
+            removeDiacritics(user.name),
+            user.username,
+            user.email,
+            user.avatarUrl,
+            user.city,
+            user.state,
+            user.gender,
+            user.age,
+          ]);
     } catch (e) {
       print('Error inserting user: $e');
       return 0;
     }
   }
-
 
   // Método para obter um usuário pelo ID
   Future<PersonModel?> getUserId(String id) async {
@@ -92,24 +102,25 @@ class DatabaseHelper {
     }
   }
 
-   // Método para atualizar um usuário no banco de dados
   Future<int> updateUser(PersonModel user) async {
     try {
       final db = await database;
-      // Atualiza o usuário na tabela 'users_with_accents'
-      await db.update(
-        'users_with_accents',
-        user.toMap(),
-        where: 'id = ?',
-        whereArgs: [user.id],
-      );
-      // Atualiza o usuário na tabela 'users_without_accents' com o nome sem acentos
-      return await db.update(
-        'users_without_accents',
-        user.toMap()..['name'] = removeDiacritics(user.name),
-        where: 'id = ?',
-        whereArgs: [user.id],
-      );
+      final result = await db.rawUpdate(
+          'UPDATE users SET name = ?, name = ?, username = ?, email = ?, avatarUrl = ?,'
+          'city = ?, state = ?, gender = ?, age = ? WHERE id = ?',
+          [
+            user.name,
+            removeDiacritics(user.name),
+            user.username,
+            user.email,
+            user.avatarUrl,
+            user.city,
+            user.state,
+            user.gender,
+            user.age,
+            user.id,
+          ]);
+      return result;
     } catch (e) {
       print('Error updating user: $e');
       return 0;
