@@ -1,33 +1,27 @@
 import 'package:remove_diacritic/remove_diacritic.dart';
-import 'package:sqflite/sqflite.dart'; // Importa a biblioteca sqflite para manipulação de banco de dados SQLite
-import 'package:path/path.dart'; // Importa a biblioteca path para manipulação de caminhos de arquivos
-import 'package:api_dados/models/person_model.dart'; // Importa o modelo PersonModel
-import 'package:api_dados/models/filter_model.dart'; // Importa o modelo FilterModel
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'package:api_dados/models/person_model.dart';
+import 'package:api_dados/models/filter_model.dart';
 
-// Classe para gerenciar o banco de dados SQLite
 class DatabaseHelper {
-  // Singleton para garantir que apenas uma instância do DatabaseHelper seja criada
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
 
-  // Construtor privado para o singleton
   DatabaseHelper._init();
 
-  // Método para obter a instância do banco de dados, inicializando-o se necessário
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('users.db'); // Inicializa o banco de dados com o nome 'users.db'
+    _database = await _initDB('users.db');
     return _database!;
   }
 
-  // Método para inicializar o banco de dados
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath(); // Obtém o caminho do diretório do banco de dados
-    final path = join(dbPath, filePath); // Cria o caminho completo para o banco de dados
-    return await openDatabase(path, version: 2, onCreate: _createDB, onUpgrade: _upgradeDB); // Abre o banco de dados e chama _createDB se ele não existir
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
+    return await openDatabase(path, version: 2, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
-  // Método para criar a tabela no banco de dados
   Future _createDB(Database db, int version) async {
     const sql = '''
     CREATE TABLE IF NOT EXISTS users (
@@ -43,7 +37,7 @@ class DatabaseHelper {
       age INTEGER NOT NULL
     );
     ''';
-    await db.execute(sql); // Executa a criação da tabela
+    await db.execute(sql);
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
@@ -57,10 +51,8 @@ class DatabaseHelper {
         await db.execute('ALTER TABLE users ADD COLUMN name_sem_acento TEXT NOT NULL DEFAULT \' \' ');
       } catch (_) {}
     }
-    // Adicione mais condições conforme necessário para futuras versões
   }
 
-  // Método para inserir um usuário no banco de dados
   Future<int> createUser(PersonModel user) async {
     try {
       final db = await database;
@@ -70,7 +62,7 @@ class DatabaseHelper {
           [
             user.id,
             user.name,
-            removeDiacritics(user.name), // Salva o nome sem acento
+            removeDiacritics(user.name),
             user.username,
             user.email,
             user.avatarUrl,
@@ -85,7 +77,6 @@ class DatabaseHelper {
     }
   }
 
-  // Método para obter um usuário pelo ID
   Future<PersonModel?> getUserId(String id) async {
     try {
       final db = await database;
@@ -125,7 +116,6 @@ class DatabaseHelper {
     }
   }
 
-  // Método para deletar um usuário do banco de dados
   Future<int> deleteUser(String id) async {
     try {
       final db = await database;
@@ -141,7 +131,7 @@ class DatabaseHelper {
     List<String> whereArgs,
     String column,
     String? value, {
-    String operator = '',
+    String operator = '=',
   }) {
     if (value != null && value.isNotEmpty) {
       if (whereClause.isNotEmpty) whereClause.write(' AND ');
@@ -150,30 +140,24 @@ class DatabaseHelper {
     }
   }
 
-  // Método para obter todos os usuários aplicando filtros
   Future<List<PersonModel>> getAllUsers(FilterModel filtroPessoa) async {
     try {
       final db = await database;
-      StringBuffer whereClause = StringBuffer(); // Inicializa a cláusula WHERE
-      List<String> whereArgs = []; // Inicializa a lista de argumentos para a cláusula WHERE
+      StringBuffer whereClause = StringBuffer();
+      List<String> whereArgs = [];
 
-      // Adiciona filtro por nome sem acento
       if (filtroPessoa.name != null && filtroPessoa.name!.isNotEmpty) {
         String nameSemAcento = removeDiacritics(filtroPessoa.name!);
         addFilter(whereClause, whereArgs, 'name_sem_acento', '%$nameSemAcento%', operator: 'LIKE');
       }
-      // Adiciona filtro por gênero
       addFilter(whereClause, whereArgs, 'gender', filtroPessoa.gender);
-      // Adiciona filtro por idade mínima
       if (filtroPessoa.minAge != null) {
         addFilter(whereClause, whereArgs, 'age', filtroPessoa.minAge.toString(), operator: '>');
       }
-      // Adiciona filtro por idade máxima
       if (filtroPessoa.maxAge != null) {
         addFilter(whereClause, whereArgs, 'age', filtroPessoa.maxAge.toString(), operator: '<');
       }
 
-      // Consulta o banco de dados com os filtros aplicados
       final List<Map<String, dynamic>> results = await db.query(
         'users',
         where: whereClause.isNotEmpty ? whereClause.toString() : null,
@@ -181,16 +165,15 @@ class DatabaseHelper {
       );
 
       print('Procurando dados no banco de dados... encontrado: $results');
-      return results.map((map) => PersonModel.fromMap(map)).toList(); // Converte os resultados em uma lista de PersonModel
+      return results.map((map) => PersonModel.fromMap(map)).toList();
     } catch (e) {
       print('Erro ao buscar todos os usuários: $e');
       return [];
     }
   }
 
-  // Método para fechar o banco de dados
   Future close() async {
     final db = await database;
-    db.close(); // Fecha o banco de dados
+    db.close();
   }
 }
