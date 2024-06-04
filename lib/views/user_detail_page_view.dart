@@ -11,6 +11,7 @@ class UserDetailPage extends StatefulWidget {
   const UserDetailPage({super.key, required this.user, this.showSaveButton = false}); // Construtor
 
   @override
+  // ignore: library_private_types_in_public_api
   _UserDetailPageState createState() => _UserDetailPageState();
 }
 
