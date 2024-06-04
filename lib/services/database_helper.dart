@@ -136,7 +136,13 @@ class DatabaseHelper {
     }
   }
 
-  void addFilter(StringBuffer whereClause, List<String> whereArgs, String column, String? value, {String operator = '='}) {
+  void addFilter(
+    StringBuffer whereClause,
+    List<String> whereArgs,
+    String column,
+    String? value, {
+    String operator = '',
+  }) {
     if (value != null && value.isNotEmpty) {
       if (whereClause.isNotEmpty) whereClause.write(' AND ');
       whereClause.write('$column $operator ?');
