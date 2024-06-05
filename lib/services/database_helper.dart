@@ -126,36 +126,40 @@ class DatabaseHelper {
     }
   }
 
-  void addFilter(
-    StringBuffer whereClause,
-    List<String> whereArgs,
-    String column,
-    String? value, {
-    String operator = '=',
-  }) {
-    if (value != null && value.isNotEmpty) {
-      if (whereClause.isNotEmpty) whereClause.write(' AND ');
-      whereClause.write('$column $operator ?');
-      whereArgs.add(value);
-    }
+  bool isNotNullAndNotEmpty(String? value) { 
+    return value != null && value.isNotEmpty;
   }
-
+   // Método para obter todos os usuários aplicando filtros
   Future<List<PersonModel>> getAllUsers(FilterModel filtroPessoa) async {
     try {
+      filtroPessoa;
       final db = await database;
-      StringBuffer whereClause = StringBuffer();
-      List<String> whereArgs = [];
+      String whereClause = ''; // Inicializa a cláusula WHERE
+      List<dynamic> whereArgs = []; // Inicializa a lista de argumentos para a cláusula WHERE
 
-      if (filtroPessoa.name != null && filtroPessoa.name!.isNotEmpty) {
+      // Adiciona filtro por nome se especificado
+      if (isNotNullAndNotEmpty(filtroPessoa.name)) {
         String nameSemAcento = removeDiacritics(filtroPessoa.name!);
-        addFilter(whereClause, whereArgs, 'name_sem_acento', '%$nameSemAcento%', operator: 'LIKE');
+        whereClause += 'name_sem_acento LIKE ?';
+        whereArgs.add('%$nameSemAcento%');
       }
-      addFilter(whereClause, whereArgs, 'gender', filtroPessoa.gender);
+      // Adiciona filtro por gênero se especificado
+      if (isNotNullAndNotEmpty(filtroPessoa.gender)) {
+        if (whereClause.isNotEmpty) whereClause += ' AND ';
+        whereClause += 'gender = ?';
+        whereArgs.add(filtroPessoa.gender);
+      }
+      // Adiciona filtro por idade mínima se especificado
       if (filtroPessoa.minAge != null) {
-        addFilter(whereClause, whereArgs, 'age', filtroPessoa.minAge.toString(), operator: '>');
+        if (whereClause.isNotEmpty) whereClause += ' AND ';
+        whereClause += 'age > ?';
+        whereArgs.add(filtroPessoa.minAge);
       }
+      // Adiciona filtro por idade máxima se especificado
       if (filtroPessoa.maxAge != null) {
-        addFilter(whereClause, whereArgs, 'age', filtroPessoa.maxAge.toString(), operator: '<');
+        if (whereClause.isNotEmpty) whereClause += ' AND ';
+        whereClause += 'age < ?';
+        whereArgs.add(filtroPessoa.maxAge);
       }
 
       final List<Map<String, dynamic>> results = await db.query(

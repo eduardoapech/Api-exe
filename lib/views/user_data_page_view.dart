@@ -34,6 +34,8 @@ class _UserDataPageState extends State<UserDataPage> {
 
   int _savedDataCount = 0;
 
+  String _selectedGenderShowData = getIt<FilterModel>().gender ?? 'todos';
+
   // Controladores de texto para os campos de filtro
   final TextEditingController _filterController = TextEditingController();
   final TextEditingController _minAgeController = TextEditingController();
@@ -49,12 +51,16 @@ class _UserDataPageState extends State<UserDataPage> {
   String _selectedGender = '';
 
   // Instância do modelo de filtro
- 
 
   // final EasyDebounce _debouncer = Debouncer(const Duration(milliseconds: 500));
   @override
   void initState() {
     super.initState();
+    _selectedGenderShowData = 'todos';
+    if (_selectedIndex == 0) {
+      _loadUserData();
+    }
+    _loadUserData();
     _filterController.addListener(() {
       _showClearIconforfilter.value = _filterController.text.isNotEmpty;
     });
@@ -103,7 +109,16 @@ class _UserDataPageState extends State<UserDataPage> {
     setState(() {
       _isLoading = true; // Definir estado de carregamento como verdadeiro
     });
-    final users = await fetchRandomUsers(); // Buscar usuários aleatórios
+
+    String? gender;
+    if (_selectedGenderShowData == 'male') {
+      gender = 'male';
+    } else if (_selectedGenderShowData == 'female') {
+      gender = 'female';
+    }
+
+    final users = await fetchRandomUsers(gender: gender); // Buscar usuários aleatórios com o gênero selecionado
+
     setState(() {
       _filteredUsers = users; // Atualizar a lista de usuários filtrados
       _isLoading = false; // Definir estado de carregamento como falso
@@ -368,59 +383,95 @@ class _UserDataPageState extends State<UserDataPage> {
 
   // Constrói a lista de usuários aleatórios ou exibe um indicador de progresso
   Widget _showUserData() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (_filteredUsers.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Nenhum usuário encontrado'),
-            SizedBox(height: 16),
-          ],
-        ),
-      );
-    } else {
-      return ListView.builder(
-        itemCount: _filteredUsers.length,
-        itemBuilder: (context, index) {
-          final user = _filteredUsers[index];
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-                side: const BorderSide(color: Colors.black, width: 2.0),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: DropdownButtonFormField<String>(
+            value: _selectedGenderShowData != '' ? _selectedGenderShowData : null,
+            items: ['todos', 'male', 'female'].map((gender) {
+              return DropdownMenuItem<String>(
+                value: gender,
+                child: Text(gender == 'todos' ? 'Todos' : gender),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedGenderShowData = value ?? 'todos';
+                _loadUserData(); // Recarregar usuários com base no novo filtro de gênero
+              });
+            },
+            decoration: const InputDecoration(
+              labelText: 'Gênero',
+              labelStyle: TextStyle(color: Colors.black, fontSize: 16),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black, width: 2.0),
               ),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(user.avatarUrl),
-                  radius: 25,
-                ),
-                title: Text(user.name),
-                subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.save, color: Colors.green),
-                  onPressed: () async {
-                    await _saveUser(user);
-                  },
-                ),
-                onTap: () async {
-                  final updatedUser = await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => UserDetailPage(user: user, showSaveButton: true),
-                    ),
-                  );
-                  if (updatedUser != null && updatedUser is PersonModel) {
-                    await _saveUser(updatedUser); // Salvar usuário ao retornar da página de detalhes
-                  }
-                },
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.red, width: 2.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.green, width: 2.0),
               ),
             ),
-          );
-        },
-      );
-    }
+          ),
+        ),
+        Expanded(
+          child: _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : _filteredUsers.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Nenhum usuário encontrado'),
+                          SizedBox(height: 16),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = _filteredUsers[index];
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              side: const BorderSide(color: Colors.black, width: 2.0),
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(user.avatarUrl),
+                                radius: 25,
+                              ),
+                              title: Text(user.name),
+                              subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.save, color: Colors.green),
+                                onPressed: () async {
+                                  await _saveUser(user);
+                                },
+                              ),
+                              onTap: () async {
+                                final updatedUser = await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => UserDetailPage(user: user, showSaveButton: true),
+                                  ),
+                                );
+                                if (updatedUser != null && updatedUser is PersonModel) {
+                                  await _saveUser(updatedUser); // Salvar usuário ao retornar da página de detalhes
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+        ),
+      ],
+    );
   }
 
   // Constrói a lista de usuários salvos ou exibe um indicador de progresso
@@ -539,8 +590,12 @@ class _UserDataPageState extends State<UserDataPage> {
         selectedItemColor: Colors.red, //cor do item selecionado
         unselectedItemColor: Colors.grey, //cor dos itens não selecionados
         selectedIconTheme: const IconThemeData(color: Colors.red), //cor do item selecionado
-        unselectedIconTheme: const IconThemeData(color: Colors.grey), // cor dos itens não selecionados
+        unselectedIconTheme: const IconThemeData(color: Colors.grey),
+        // cor dos itens não selecionados
+
+        // Adicione um dropdown para selecionar o gênero na aba "Show Data"
       ),
+
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               onPressed: _loadUserData,

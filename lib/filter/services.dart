@@ -1,15 +1,17 @@
-import 'package:dio/dio.dart'; // Importa a biblioteca Dio para realizar requisições HTTP
-import 'package:api_dados/models/person_model.dart'; // Importa o modelo PersonModel
+import 'package:api_dados/models/person_model.dart';
+import 'package:dio/dio.dart';
 
-// Função assíncrona para buscar usuários aleatórios
-Future<List<PersonModel>> fetchRandomUsers() async {
+Future<List<PersonModel>> fetchRandomUsers({String? gender}) async {
   // Define a URL base para a API randomuser.me, solicitando 10 resultados
   const String baseUrl = 'https://randomuser.me/api/1.4/?results=10';
   Dio dio = Dio(); // Cria uma instância da classe Dio
 
   try {
-    // Realiza uma requisição GET para a URL base
-    var res = await dio.get(baseUrl);
+    // Adiciona o parâmetro de gênero à URL se estiver presente
+    String url = gender != null ? '$baseUrl&gender=$gender' : baseUrl;
+    
+    // Realiza uma requisição GET para a URL com o parâmetro de gênero, se fornecido
+    var res = await dio.get(url);
     
     // Verifica se a resposta tem status 200 (OK)
     if (res.statusCode == 200) {
