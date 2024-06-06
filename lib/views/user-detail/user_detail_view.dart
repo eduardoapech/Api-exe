@@ -1,22 +1,22 @@
-import 'package:api_dados/views/user_edit_page_view.dart'; // Importa a página de edição do usuário
+import 'package:api_dados/views/cadastro-user/user_edit_view.dart'; // Importa a página de edição do usuário
 import 'package:flutter/material.dart'; // Importa a biblioteca Flutter para construção da UI
 import 'package:api_dados/models/person_model.dart'; // Importa o modelo PersonModel
 import 'package:api_dados/services/database_helper.dart'; // Importa o DatabaseHelper para operações com banco de dados
 
 // Declaração da classe UserDetailPage como um StatefulWidget
-class UserDetailPage extends StatefulWidget {
+class UserDetailView extends StatefulWidget {
   final PersonModel user; // Usuário cujos detalhes serão exibidos
   final bool showSaveButton; // Flag para mostrar ou não o botão de salvar
 
-  const UserDetailPage({super.key, required this.user, this.showSaveButton = false}); // Construtor
+  const UserDetailView({super.key, required this.user, this.showSaveButton = false}); // Construtor
 
   @override
   // ignore: library_private_types_in_public_api
-  _UserDetailPageState createState() => _UserDetailPageState();
+  _UserDetailViewState createState() => _UserDetailViewState();
 }
 
 // Estado associado ao UserDetailPage
-class _UserDetailPageState extends State<UserDetailPage> {
+class _UserDetailViewState extends State<UserDetailView> {
   late PersonModel _user; // Variável para armazenar o usuário
 
   @override
@@ -37,7 +37,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
               // Navega para a página de edição do usuário
               final updatedUser = await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => UserEditPage(user: _user),
+                  builder: (context) => UserEditView(user: _user),
                 ),
               );
               // Se o usuário foi atualizado, reflete as mudanças

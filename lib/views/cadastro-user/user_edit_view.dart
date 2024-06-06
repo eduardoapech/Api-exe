@@ -4,16 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/widgets/cs_text_field.dart';
 
-class UserEditPage extends StatefulWidget {
+class UserEditView extends StatefulWidget {
   final PersonModel user;
 
-  const UserEditPage({super.key, required this.user});
+  const UserEditView({super.key, required this.user});
 
   @override
-  _UserEditPageState createState() => _UserEditPageState();
+  _UserEditViewState createState() => _UserEditViewState();
 }
 
-class _UserEditPageState extends State<UserEditPage> {
+class _UserEditViewState extends State<UserEditView> {
   final _formKey = GlobalKey<FormState>();
 
   bool hasModifications = false; // Indica se houve modificações no formulário

@@ -5,7 +5,7 @@ import 'package:api_dados/models/filter_model.dart';
 import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/filter/services.dart';
-import 'package:api_dados/views/user_detail_page_view.dart';
+import 'package:api_dados/views/user-detail/user_detail_view.dart';
 import 'package:remove_diacritic/remove_diacritic.dart';
 
 import 'package:badges/badges.dart' as badges;
@@ -34,7 +34,7 @@ class _UserDataPageState extends State<UserDataPage> {
 
   int _savedDataCount = 0;
 
-  String _selectedGenderShowData = getIt<FilterModel>().gender ?? 'todos';
+  final filtroShowdata = getIt<FilterModel>(instanceName: 'filterInstance');
 
   // Controladores de texto para os campos de filtro
   final TextEditingController _filterController = TextEditingController();
@@ -56,7 +56,6 @@ class _UserDataPageState extends State<UserDataPage> {
   @override
   void initState() {
     super.initState();
-    _selectedGenderShowData = 'todos';
     if (_selectedIndex == 0) {
       _loadUserData();
     }
@@ -110,14 +109,9 @@ class _UserDataPageState extends State<UserDataPage> {
       _isLoading = true; // Definir estado de carregamento como verdadeiro
     });
 
-    String? gender;
-    if (_selectedGenderShowData == 'male') {
-      gender = 'male';
-    } else if (_selectedGenderShowData == 'female') {
-      gender = 'female';
-    }
+  
 
-    final users = await fetchRandomUsers(gender: gender); // Buscar usuários aleatórios com o gênero selecionado
+    final users = await fetchRandomUsers(gender: filtroShowdata.gender); // Buscar usuários aleatórios com o gênero selecionado
 
     setState(() {
       _filteredUsers = users; // Atualizar a lista de usuários filtrados
@@ -389,7 +383,7 @@ class _UserDataPageState extends State<UserDataPage> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: DropdownButtonFormField<String>(
-            value: _selectedGenderShowData != '' ? _selectedGenderShowData : null,
+            value: filtroShowdata.gender,
             items: ['todos', 'male', 'female'].map((gender) {
               return DropdownMenuItem<String>(
                 value: gender,
@@ -398,7 +392,7 @@ class _UserDataPageState extends State<UserDataPage> {
             }).toList(),
             onChanged: (value) {
               setState(() {
-                _selectedGenderShowData = value ?? 'todos';
+                filtroShowdata.gender = value;
                 _loadUserData(); // Recarregar usuários com base no novo filtro de gênero
               });
             },
@@ -457,7 +451,7 @@ class _UserDataPageState extends State<UserDataPage> {
                               onTap: () async {
                                 final updatedUser = await Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => UserDetailPage(user: user, showSaveButton: true),
+                                    builder: (context) => UserDetailView(user: user, showSaveButton: true),
                                   ),
                                 );
                                 if (updatedUser != null && updatedUser is PersonModel) {
@@ -529,7 +523,7 @@ class _UserDataPageState extends State<UserDataPage> {
                     });
                     final updatedUser = await Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => UserDetailPage(user: user, showSaveButton: true),
+                        builder: (context) => UserDetailView(user: user, showSaveButton: true),
                       ),
                     );
                     if (updatedUser != null && updatedUser is PersonModel) {
