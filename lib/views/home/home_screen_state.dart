@@ -6,72 +6,36 @@ class HomeScreenState = _HomeScreenState with _$HomeScreenState;
 
 abstract class _HomeScreenState with Store {
   @observable
-  bool showClearIconForFilter = false;
+  bool _showClearIconForFilter = false;
 
   @observable
-  bool showClearIconForMinAge = false;
+  bool _showClearIconForMinAge = false;
 
   @observable
-  bool showClearIconForMaxAge = false;
+  bool _showClearIconForMaxAge = false;
 
-  @observable
-  String filterText = '';
-
-  @observable
-  String minAgeText = '';
-
-  @observable
-  String maxAgeText = '';
 
   @computed
-  bool get showClearIconForFilterComputed => filterText.isNotEmpty;
+  bool get showClearIconForFilter => _showClearIconForFilter;
 
   @computed
-  bool get showClearIconForMinAgeComputed => minAgeText.isNotEmpty;
+  bool get showClearIconForMinAge => _showClearIconForMinAge;
 
   @computed
-  bool get showClearIconForMaxAgeComputed => maxAgeText.isNotEmpty;
+  bool get showClearIconForMaxAge => _showClearIconForMaxAge;
 
   @action
-  void setFilterText(String text) {
-    filterText = text;
-    updateClearIcons();
+  void setFilterText() {
+    _showClearIconForFilter = !_showClearIconForFilter;
   }
 
   @action
-  void setMinAgeText(String text) {
-    minAgeText = text;
-    updateClearIcons();
+  void setMinAgeText() {
+    _showClearIconForMinAge = !_showClearIconForMinAge;
   }
 
   @action
-  void setMaxAgeText(String text) {
-    maxAgeText = text;
-    updateClearIcons();
-  }
-
-  @action
-  void updateClearIcons() {
-    showClearIconForFilter = filterText.isNotEmpty;
-    showClearIconForMinAge = minAgeText.isNotEmpty;
-    showClearIconForMaxAge = maxAgeText.isNotEmpty;
-  }
-
-  @action
-  void clearFilterText() {
-    filterText = '';
-    updateClearIcons();
-  }
-
-  @action
-  void clearMinAgeText() {
-    minAgeText = '';
-    updateClearIcons();
-  }
-
-  @action
-  void clearMaxAgeText() {
-    maxAgeText = '';
-    updateClearIcons();
+  void setMaxAgeText() {
+    _showClearIconForMaxAge = !_showClearIconForMaxAge;
   }
 }

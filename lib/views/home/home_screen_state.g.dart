@@ -9,127 +9,76 @@ part of 'home_screen_state.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$HomeScreenState on _HomeScreenState, Store {
-  Computed<bool>? _$showClearIconForFilterComputedComputed;
+  Computed<bool>? _$showClearIconForFilterComputed;
 
   @override
-  bool get showClearIconForFilterComputed =>
-      (_$showClearIconForFilterComputedComputed ??= Computed<bool>(
-              () => super.showClearIconForFilterComputed,
-              name: '_HomeScreenState.showClearIconForFilterComputed'))
-          .value;
-  Computed<bool>? _$showClearIconForMinAgeComputedComputed;
+  bool get showClearIconForFilter => (_$showClearIconForFilterComputed ??=
+          Computed<bool>(() => super.showClearIconForFilter,
+              name: '_HomeScreenState.showClearIconForFilter'))
+      .value;
+  Computed<bool>? _$showClearIconForMinAgeComputed;
 
   @override
-  bool get showClearIconForMinAgeComputed =>
-      (_$showClearIconForMinAgeComputedComputed ??= Computed<bool>(
-              () => super.showClearIconForMinAgeComputed,
-              name: '_HomeScreenState.showClearIconForMinAgeComputed'))
-          .value;
-  Computed<bool>? _$showClearIconForMaxAgeComputedComputed;
+  bool get showClearIconForMinAge => (_$showClearIconForMinAgeComputed ??=
+          Computed<bool>(() => super.showClearIconForMinAge,
+              name: '_HomeScreenState.showClearIconForMinAge'))
+      .value;
+  Computed<bool>? _$showClearIconForMaxAgeComputed;
 
   @override
-  bool get showClearIconForMaxAgeComputed =>
-      (_$showClearIconForMaxAgeComputedComputed ??= Computed<bool>(
-              () => super.showClearIconForMaxAgeComputed,
-              name: '_HomeScreenState.showClearIconForMaxAgeComputed'))
-          .value;
+  bool get showClearIconForMaxAge => (_$showClearIconForMaxAgeComputed ??=
+          Computed<bool>(() => super.showClearIconForMaxAge,
+              name: '_HomeScreenState.showClearIconForMaxAge'))
+      .value;
 
-  late final _$showClearIconForFilterAtom =
-      Atom(name: '_HomeScreenState.showClearIconForFilter', context: context);
+  late final _$_showClearIconForFilterAtom =
+      Atom(name: '_HomeScreenState._showClearIconForFilter', context: context);
 
   @override
-  bool get showClearIconForFilter {
-    _$showClearIconForFilterAtom.reportRead();
-    return super.showClearIconForFilter;
+  bool get _showClearIconForFilter {
+    _$_showClearIconForFilterAtom.reportRead();
+    return super._showClearIconForFilter;
   }
 
   @override
-  set showClearIconForFilter(bool value) {
-    _$showClearIconForFilterAtom
-        .reportWrite(value, super.showClearIconForFilter, () {
-      super.showClearIconForFilter = value;
+  set _showClearIconForFilter(bool value) {
+    _$_showClearIconForFilterAtom
+        .reportWrite(value, super._showClearIconForFilter, () {
+      super._showClearIconForFilter = value;
     });
   }
 
-  late final _$showClearIconForMinAgeAtom =
-      Atom(name: '_HomeScreenState.showClearIconForMinAge', context: context);
+  late final _$_showClearIconForMinAgeAtom =
+      Atom(name: '_HomeScreenState._showClearIconForMinAge', context: context);
 
   @override
-  bool get showClearIconForMinAge {
-    _$showClearIconForMinAgeAtom.reportRead();
-    return super.showClearIconForMinAge;
+  bool get _showClearIconForMinAge {
+    _$_showClearIconForMinAgeAtom.reportRead();
+    return super._showClearIconForMinAge;
   }
 
   @override
-  set showClearIconForMinAge(bool value) {
-    _$showClearIconForMinAgeAtom
-        .reportWrite(value, super.showClearIconForMinAge, () {
-      super.showClearIconForMinAge = value;
+  set _showClearIconForMinAge(bool value) {
+    _$_showClearIconForMinAgeAtom
+        .reportWrite(value, super._showClearIconForMinAge, () {
+      super._showClearIconForMinAge = value;
     });
   }
 
-  late final _$showClearIconForMaxAgeAtom =
-      Atom(name: '_HomeScreenState.showClearIconForMaxAge', context: context);
+  late final _$_showClearIconForMaxAgeAtom =
+      Atom(name: '_HomeScreenState._showClearIconForMaxAge', context: context);
 
   @override
-  bool get showClearIconForMaxAge {
-    _$showClearIconForMaxAgeAtom.reportRead();
-    return super.showClearIconForMaxAge;
+  bool get _showClearIconForMaxAge {
+    _$_showClearIconForMaxAgeAtom.reportRead();
+    return super._showClearIconForMaxAge;
   }
 
   @override
-  set showClearIconForMaxAge(bool value) {
-    _$showClearIconForMaxAgeAtom
-        .reportWrite(value, super.showClearIconForMaxAge, () {
-      super.showClearIconForMaxAge = value;
-    });
-  }
-
-  late final _$filterTextAtom =
-      Atom(name: '_HomeScreenState.filterText', context: context);
-
-  @override
-  String get filterText {
-    _$filterTextAtom.reportRead();
-    return super.filterText;
-  }
-
-  @override
-  set filterText(String value) {
-    _$filterTextAtom.reportWrite(value, super.filterText, () {
-      super.filterText = value;
-    });
-  }
-
-  late final _$minAgeTextAtom =
-      Atom(name: '_HomeScreenState.minAgeText', context: context);
-
-  @override
-  String get minAgeText {
-    _$minAgeTextAtom.reportRead();
-    return super.minAgeText;
-  }
-
-  @override
-  set minAgeText(String value) {
-    _$minAgeTextAtom.reportWrite(value, super.minAgeText, () {
-      super.minAgeText = value;
-    });
-  }
-
-  late final _$maxAgeTextAtom =
-      Atom(name: '_HomeScreenState.maxAgeText', context: context);
-
-  @override
-  String get maxAgeText {
-    _$maxAgeTextAtom.reportRead();
-    return super.maxAgeText;
-  }
-
-  @override
-  set maxAgeText(String value) {
-    _$maxAgeTextAtom.reportWrite(value, super.maxAgeText, () {
-      super.maxAgeText = value;
+  set _showClearIconForMaxAge(bool value) {
+    _$_showClearIconForMaxAgeAtom
+        .reportWrite(value, super._showClearIconForMaxAge, () {
+      super._showClearIconForMaxAge = value;
     });
   }
 
@@ -137,33 +86,33 @@ mixin _$HomeScreenState on _HomeScreenState, Store {
       ActionController(name: '_HomeScreenState', context: context);
 
   @override
-  void setFilterText(String text) {
+  void setFilterText() {
     final _$actionInfo = _$_HomeScreenStateActionController.startAction(
         name: '_HomeScreenState.setFilterText');
     try {
-      return super.setFilterText(text);
+      return super.setFilterText();
     } finally {
       _$_HomeScreenStateActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setMinAgeText(String text) {
+  void setMinAgeText() {
     final _$actionInfo = _$_HomeScreenStateActionController.startAction(
         name: '_HomeScreenState.setMinAgeText');
     try {
-      return super.setMinAgeText(text);
+      return super.setMinAgeText();
     } finally {
       _$_HomeScreenStateActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setMaxAgeText(String text) {
+  void setMaxAgeText() {
     final _$actionInfo = _$_HomeScreenStateActionController.startAction(
         name: '_HomeScreenState.setMaxAgeText');
     try {
-      return super.setMaxAgeText(text);
+      return super.setMaxAgeText();
     } finally {
       _$_HomeScreenStateActionController.endAction(_$actionInfo);
     }
@@ -174,13 +123,7 @@ mixin _$HomeScreenState on _HomeScreenState, Store {
     return '''
 showClearIconForFilter: ${showClearIconForFilter},
 showClearIconForMinAge: ${showClearIconForMinAge},
-showClearIconForMaxAge: ${showClearIconForMaxAge},
-filterText: ${filterText},
-minAgeText: ${minAgeText},
-maxAgeText: ${maxAgeText},
-showClearIconForFilterComputed: ${showClearIconForFilterComputed},
-showClearIconForMinAgeComputed: ${showClearIconForMinAgeComputed},
-showClearIconForMaxAgeComputed: ${showClearIconForMaxAgeComputed}
+showClearIconForMaxAge: ${showClearIconForMaxAge}
     ''';
   }
 }

@@ -5,7 +5,8 @@ import 'package:api_dados/models/filter_model.dart';
 import 'package:api_dados/services/database_helper.dart';
 import 'package:api_dados/views/user-detail/user_detail_view.dart';
 import 'package:remove_diacritic/remove_diacritic.dart';
-
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:api_dados/views/home/home_screen_state.dart';
 
 class SavedDataPage extends StatefulWidget {
   const SavedDataPage({Key? key}) : super(key: key);
@@ -21,10 +22,10 @@ class _SavedDataPageState extends State<SavedDataPage> {
   bool _isLoading = false;
   Timer? _debounceTimer;
 
-
   final TextEditingController _filterController = TextEditingController();
   final TextEditingController _minAgeController = TextEditingController();
   final TextEditingController _maxAgeController = TextEditingController();
+  
 
   final ValueNotifier<bool> _showClearIconforfilter = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _showClearIconForMinAge = ValueNotifier<bool>(false);
@@ -228,34 +229,40 @@ class _SavedDataPageState extends State<SavedDataPage> {
                 ),
               ),
               SizedBox(height: 16),
-              ValueListenableBuilder<bool>(
-                valueListenable: _showClearIconforfilter,
-                builder: (context, showClearIcon, _) {
-                  return TextField(
-                    controller: _filterController,
-                    onChanged: _handleFilterChange,
-                    decoration: InputDecoration(
-                      labelText: 'Nome',
-                      labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black, width: 2.0),
+              Observer(builder: (_) {
+                return ValueListenableBuilder<bool>(
+                  valueListenable: _showClearIconforfilter,
+                  builder: (
+                    context,
+                    showClearIcon,
+                    _,
+                  ) {
+                    return TextField(
+                      controller: _filterController,
+                      onChanged: _handleFilterChange,
+                      decoration: InputDecoration(
+                        labelText: 'Nome',
+                        labelStyle: TextStyle(color: Colors.black, fontSize: 16),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 2.0),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red, width: 2.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green, width: 2.0),
+                        ),
+                        suffixIcon: showClearIcon
+                            ? IconButton(
+                                onPressed: _clearFilter,
+                                icon: Icon(Icons.clear),
+                              )
+                            : null,
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red, width: 2.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green, width: 2.0),
-                      ),
-                      suffixIcon: showClearIcon
-                          ? IconButton(
-                              onPressed: _clearFilter,
-                              icon: Icon(Icons.clear),
-                            )
-                          : null,
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                );
+              }),
               SizedBox(height: 16),
               Row(
                 children: [
