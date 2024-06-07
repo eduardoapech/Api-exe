@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:api_dados/get-It/get_it.dart';
 import 'package:api_dados/models/person_model.dart';
 import 'package:api_dados/models/filter_model.dart';
 import 'package:api_dados/services/database_helper.dart';
@@ -9,15 +10,17 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:api_dados/views/home/home_screen_state.dart';
 
 class SavedDataPage extends StatefulWidget {
-  const SavedDataPage({Key? key}) : super(key: key);
+  const SavedDataPage({Key? key, required this.onView}) : super(key: key);
+
+  final VoidCallback onView;
 
   @override
   _SavedDataPageState createState() => _SavedDataPageState();
 }
 
 class _SavedDataPageState extends State<SavedDataPage> {
+  final HomeScreenState homeScreenState = HomeScreenState();
   List<PersonModel> _filteredUsers = [];
-
   List<PersonModel> _savedUsers = [];
   bool _isLoading = false;
   Timer? _debounceTimer;
@@ -25,11 +28,8 @@ class _SavedDataPageState extends State<SavedDataPage> {
   final TextEditingController _filterController = TextEditingController();
   final TextEditingController _minAgeController = TextEditingController();
   final TextEditingController _maxAgeController = TextEditingController();
-  
 
-  final ValueNotifier<bool> _showClearIconforfilter = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> _showClearIconForMinAge = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> _showClearIconForMaxAge = ValueNotifier<bool>(false);
+  final HomeScreenState _homeScreenState = HomeScreenState();
 
   final List<String> _genderOptions = ['todos', 'male', 'female'];
   String _selectedGender = 'todos';
@@ -49,16 +49,17 @@ class _SavedDataPageState extends State<SavedDataPage> {
   @override
   void initState() {
     super.initState();
+    widget.onView(); // Chamando o callback quando a página é inicializada
     _loadSavedUsers();
 
     _filterController.addListener(() {
-      _showClearIconforfilter.value = _filterController.text.isNotEmpty;
+      _homeScreenState.setFilterText(_filterController.text.isNotEmpty);
     });
     _minAgeController.addListener(() {
-      _showClearIconForMinAge.value = _minAgeController.text.isNotEmpty;
+      _homeScreenState.setMinAgeText(_minAgeController.text.isNotEmpty);
     });
     _maxAgeController.addListener(() {
-      _showClearIconForMaxAge.value = _maxAgeController.text.isNotEmpty;
+      _homeScreenState.setMaxAgeText(_maxAgeController.text.isNotEmpty);
     });
   }
 
@@ -67,9 +68,7 @@ class _SavedDataPageState extends State<SavedDataPage> {
     _filterController.dispose();
     _minAgeController.dispose();
     _maxAgeController.dispose();
-    _showClearIconforfilter.dispose();
-    _showClearIconForMinAge.dispose();
-    _showClearIconForMaxAge.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -101,8 +100,6 @@ class _SavedDataPageState extends State<SavedDataPage> {
       filtroPessoa.gender = null;
     }
 
-    //Todo Buscar usuários do banco de dados aplicando os filtros
-
     final dbHelper = DatabaseHelper.instance;
     final users = await dbHelper.getAllUsers(filtroPessoa);
 
@@ -130,28 +127,28 @@ class _SavedDataPageState extends State<SavedDataPage> {
   Future<bool?> showDeleteConfirmationDialog(BuildContext context, String userId, String userName) {
     return showDialog<bool>(
       context: context,
-      barrierDismissible: false, // Impedir fechamento ao clicar fora do diálogo
+      barrierDismissible: false, // O usuário deve tocar em um botão para fechar o diálogo
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirmar exclusão'),
+          title: Text('Confirmar exclusão'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Tem certeza que deseja excluir $userName?'), // Mensagem de confirmação
+                Text('Tem certeza que deseja excluir $userName?'),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancelar'),
+              child: Text('Cancelar'),
               onPressed: () {
-                Navigator.of(context).pop(false); // Fechar diálogo sem deletar
+                Navigator.of(context).pop(false); // Retorna false para indicar que a exclusão foi cancelada
               },
             ),
             TextButton(
-              child: const Text('Apagar'),
-              onPressed: () {
-                Navigator.of(context).pop(true); // Fechar diálogo e confirmar exclusão
+              child: Text('Apagar'),
+              onPressed: () async {
+                Navigator.of(context).pop(true); // Retorna true para indicar que a exclusão foi confirmada
               },
             ),
           ],
@@ -198,147 +195,162 @@ class _SavedDataPageState extends State<SavedDataPage> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              DropdownButtonFormField<String>(
-                value: _selectedGender,
-                items: _genderOptions.map((gender) {
-                  return DropdownMenuItem<String>(
-                    value: gender,
-                    child: Text(gender == 'todos' ? 'Todos' : gender),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedGender = value!;
+          child: Observer(builder: (_) {
+            return TextField(
+              controller: _filterController,
+              onChanged: (text) {
+                _startDebounceTimer(() {
+                  _handleFilterChange(text);
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Pesquisar Nome',
+                labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black, width: 2),
+                ),
+                enabledBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red, width: 2),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.green, width: 2),
+                ),
+                suffixIcon: _homeScreenState.showClearIconForFilter
+                    ? IconButton(
+                        onPressed: _clearFilter,
+                        icon: const Icon(Icons.clear),
+                      )
+                    : null,
+              ),
+              style: const TextStyle(color: Colors.black, fontSize: 16),
+            );
+          }),
+        ),
+        const SizedBox(height: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              value: _selectedGender,
+              items: _genderOptions.map((gender) {
+                return DropdownMenuItem<String>(
+                  value: gender,
+                  child: Text(gender == 'todos' ? 'Todos' : gender),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedGender = value!;
+                  _startDebounceTimer(() {
                     _loadSavedUsers();
                   });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Gênero',
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 2.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.red, width: 2.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.green, width: 2.0),
-                  ),
+                });
+              },
+              decoration: const InputDecoration(
+                labelText: 'Gênero',
+                labelStyle: TextStyle(color: Colors.black, fontSize: 16),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black, width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red, width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.green, width: 2),
                 ),
               ),
-              SizedBox(height: 16),
-              Observer(builder: (_) {
-                return ValueListenableBuilder<bool>(
-                  valueListenable: _showClearIconforfilter,
-                  builder: (
-                    context,
-                    showClearIcon,
-                    _,
-                  ) {
-                    return TextField(
-                      controller: _filterController,
-                      onChanged: _handleFilterChange,
-                      decoration: InputDecoration(
-                        labelText: 'Nome',
-                        labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 2.0),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red, width: 2.0),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green, width: 2.0),
-                        ),
-                        suffixIcon: showClearIcon
-                            ? IconButton(
-                                onPressed: _clearFilter,
-                                icon: Icon(Icons.clear),
-                              )
-                            : null,
-                      ),
-                    );
-                  },
-                );
-              }),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: _showClearIconForMinAge,
-                      builder: (context, showClearIcon, _) {
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround, // Alinhar os campos
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Observer(builder: (_) {
                         return TextField(
                           controller: _minAgeController,
-                          onChanged: _handleFilterChange,
+                          onChanged: (text) {
+                            _startDebounceTimer(() {
+                              _handleFilterChange(text);
+                              _homeScreenState.setMinAgeText(text.isNotEmpty);
+                            });
+                          },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            labelText: 'Idade mínima',
-                            labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black, width: 2.0),
+                            labelText: 'Idade mín.',
+                            labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black, width: 2),
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.red, width: 2.0),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.red, width: 2),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green, width: 2.0),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.green, width: 2),
                             ),
-                            suffixIcon: showClearIcon
+                            suffixIcon: _homeScreenState.showClearIconForMinAge
                                 ? IconButton(
                                     onPressed: _clearFilter,
-                                    icon: Icon(Icons.clear),
+                                    icon: const Icon(Icons.clear),
                                   )
                                 : null,
                           ),
                         );
-                      },
-                    ),
+                      }),
+                    ],
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: _showClearIconForMaxAge,
-                      builder: (context, showClearIcon, _) {
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Observer(builder: (_) {
                         return TextField(
                           controller: _maxAgeController,
-                          onChanged: _handleFilterChange,
+                          onChanged: (text) {
+                            _startDebounceTimer(() {
+                              _handleFilterChange(text);
+                              _homeScreenState.setMaxAgeText(text.isNotEmpty);
+                            });
+                          },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            labelText: 'Idade máxima',
-                            labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black, width: 2.0),
+                            labelText: 'Idade máx.',
+                            labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black, width: 2),
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.red, width: 2.0),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.red, width: 2),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green, width: 2.0),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.green, width: 2),
                             ),
-                            suffixIcon: showClearIcon
+                            suffixIcon: _homeScreenState.showClearIconForMaxAge
                                 ? IconButton(
                                     onPressed: _clearFilter,
-                                    icon: Icon(Icons.clear),
+                                    icon: const Icon(Icons.clear),
                                   )
                                 : null,
                           ),
                         );
-                      },
-                    ),
+                      }),
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
+        const SizedBox(height: 16),
         Expanded(
           child: _isLoading
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : _savedUsers.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -356,19 +368,28 @@ class _SavedDataPageState extends State<SavedDataPage> {
                           child: Dismissible(
                             key: Key(user.id),
                             direction: DismissDirection.endToStart,
-                            onDismissed: (direction) async {
+                            confirmDismiss: (direction) async {
                               final shouldDelete = await showDeleteConfirmationDialog(context, user.id, user.name);
                               if (shouldDelete == true) {
                                 await _deleteUser(user.id);
+                                if (context != null && ScaffoldMessenger.of(context).mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Usuário ${user.name} deletado com sucesso!'),
+                                      duration: Duration(milliseconds: 500),
+                                    ),
+                                  );
+                                }
+                                return true;
                               } else {
-                                _restoreUser(user, index);
+                                return false;
                               }
                             },
                             background: Container(
                               color: Colors.red,
                               padding: const EdgeInsets.symmetric(horizontal: 20),
                               alignment: AlignmentDirectional.centerEnd,
-                              child: Icon(
+                              child: const Icon(
                                 Icons.delete,
                                 color: Colors.white,
                               ),
@@ -378,25 +399,40 @@ class _SavedDataPageState extends State<SavedDataPage> {
                                 borderRadius: BorderRadius.circular(10.0),
                                 side: const BorderSide(color: Colors.black, width: 2.0),
                               ),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundImage: NetworkImage(user.avatarUrl),
-                                  radius: 25,
-                                ),
-                                title: Text(user.name),
-                                subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
-                                onTap: () async {
-                                  final updatedUser = await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => UserDetailView(user: user, showSaveButton: true),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundImage: NetworkImage(user.avatarUrl),
+                                      radius: 25,
                                     ),
-                                  );
-                                  if (updatedUser != null && updatedUser is PersonModel) {
-                                    setState(() {
-                                      _savedUsers[index] = updatedUser;
-                                    });
-                                  }
-                                },
+                                    title: Text(
+                                      user.name,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('${user.gender}, ${user.email}, ${user.city}, ${user.state}, Age: ${user.age}'),
+                                      ],
+                                    ),
+                                    onTap: () async {
+                                      final updatedUser = await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => UserDetailView(user: user, showSaveButton: true),
+                                        ),
+                                      );
+                                      if (updatedUser != null && updatedUser is PersonModel) {
+                                        setState(() {
+                                          _savedUsers[index] = updatedUser;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
                           ),

@@ -1,3 +1,4 @@
+import 'package:api_dados/views/home/home_screen_state.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/views/home/pages/save_data_page.dart';
 import 'package:api_dados/views/home/pages/show_data_page.dart';
@@ -13,8 +14,8 @@ class UserDataPage extends StatefulWidget {
 class _UserDataPageState extends State<UserDataPage> {
   int _selectedIndex = 0;
   late PageController _pageController;
-  int _savedUserCount = 0; // Contador de usuários salvos
   int _savedDataCount = 0;
+  final HomeScreenState _homeScreenState = HomeScreenState();
 
   @override
   void initState() {
@@ -22,8 +23,6 @@ class _UserDataPageState extends State<UserDataPage> {
     _pageController = PageController(initialPage: _selectedIndex);
   }
 
-
-  
   // Função para incrementar o contador de usuários salvos
   void _incrementSavedUserCount() {
     setState(() {
@@ -34,7 +33,17 @@ class _UserDataPageState extends State<UserDataPage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      if (index == 1) {
+        _homeScreenState.resetNotificationCount(); //zerar o contador
+      }
       _pageController.jumpToPage(index);
+    });
+  }
+
+  // Função para zerar o contador de usuários salvos
+  void _resetSavedUserCount() {
+    setState(() {
+      _savedDataCount = 0;
     });
   }
 
@@ -53,23 +62,30 @@ class _UserDataPageState extends State<UserDataPage> {
         },
         children: [
           ShowDataPage(
-            onUserSaved: _incrementSavedUserCount, // Passando a função para a página ShowDataPage
+            onUserSaved: () {
+              setState(() {
+                _homeScreenState.incrementNotificationCount();
+              });
+            },
+            onUserDeleted: () {},
+            // ignore: avoid_types_as_parameter_names
+            onUserSavedStatusChanged: (bool) {},
           ),
-          const SavedDataPage(),
+          SavedDataPage(
+            onView: () {},
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
         items: <BottomNavigationBarItem>[
           const BottomNavigationBarItem(
-            icon: Icon(Icons.list),
+            icon: Icon(Icons.home),
             label: 'Show Data',
           ),
           BottomNavigationBarItem(
-            icon: _savedDataCount > 0
+            icon: _homeScreenState.notificationCount > 0
                 ? badges.Badge(
-                    badgeContent: Text('$_savedDataCount',
+                    badgeContent: Text('${_homeScreenState.notificationCount}',
                         style: const TextStyle(
                           color: Colors.white,
                         )),
@@ -79,9 +95,13 @@ class _UserDataPageState extends State<UserDataPage> {
             label: 'Saved Data',
           ),
         ],
-        selectedItemColor: Colors.blue, // Cor do item selecionado
-        unselectedItemColor: Colors.grey, // Cor do item não selecionado
-        backgroundColor: Colors.white, // Cor de fundo da BottomNavigationBar
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        backgroundColor: Colors.white,
+        selectedItemColor: Colors.red,
+        unselectedItemColor: Colors.grey,
+        selectedIconTheme: const IconThemeData(color: Colors.red),
+        unselectedIconTheme: const IconThemeData(color: Colors.grey),
       ),
     );
   }

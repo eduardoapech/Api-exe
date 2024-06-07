@@ -86,33 +86,33 @@ mixin _$HomeScreenState on _HomeScreenState, Store {
       ActionController(name: '_HomeScreenState', context: context);
 
   @override
-  void setFilterText() {
+  void setFilterText(bool value) {
     final _$actionInfo = _$_HomeScreenStateActionController.startAction(
         name: '_HomeScreenState.setFilterText');
     try {
-      return super.setFilterText();
+      return super.setFilterText(value);
     } finally {
       _$_HomeScreenStateActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setMinAgeText() {
+  void setMinAgeText(bool value) {
     final _$actionInfo = _$_HomeScreenStateActionController.startAction(
         name: '_HomeScreenState.setMinAgeText');
     try {
-      return super.setMinAgeText();
+      return super.setMinAgeText(value);
     } finally {
       _$_HomeScreenStateActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setMaxAgeText() {
+  void setMaxAgeText(bool value) {
     final _$actionInfo = _$_HomeScreenStateActionController.startAction(
         name: '_HomeScreenState.setMaxAgeText');
     try {
-      return super.setMaxAgeText();
+      return super.setMaxAgeText(value);
     } finally {
       _$_HomeScreenStateActionController.endAction(_$actionInfo);
     }

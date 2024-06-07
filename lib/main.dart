@@ -1,4 +1,5 @@
-import 'package:api_dados/models/filter_model.dart'; // Importa o modelo FilterModel
+import 'package:api_dados/get-It/get_it.dart';
+// Importa o modelo FilterModel
 import 'package:api_dados/views/home/home_screen_view.dart';
 import 'package:flutter/material.dart'; // Importa a biblioteca Flutter para construir a interface do usuário
 // Certifique-se de que o caminho está correto para a visualização da página de dados do usuário

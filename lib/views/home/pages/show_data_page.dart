@@ -1,3 +1,4 @@
+import 'package:api_dados/get-It/get_it.dart';
 import 'package:api_dados/models/filter_model.dart';
 import 'package:flutter/material.dart';
 import 'package:api_dados/models/person_model.dart';
@@ -7,8 +8,9 @@ import 'package:api_dados/views/user-detail/user_detail_view.dart';
 
 class ShowDataPage extends StatefulWidget {
   final Function onUserSaved;
+  final Function(bool) onUserSavedStatusChanged;
 
-  const ShowDataPage({Key? key, required this.onUserSaved}) : super(key: key);
+  const ShowDataPage({Key? key, required this.onUserSaved, required void Function() onUserDeleted, required this.onUserSavedStatusChanged}) : super(key: key);
 
   @override
   _ShowDataPageState createState() => _ShowDataPageState();
@@ -16,14 +18,12 @@ class ShowDataPage extends StatefulWidget {
 
 class _ShowDataPageState extends State<ShowDataPage> {
   List<PersonModel> _filteredUsers = [];
-    List<PersonModel> _savedUsers = [];
-
+  List<PersonModel> _savedUsers = [];
+  bool _userSaved = false;
   bool _isLoading = false;
   final filtroShowdata = getIt<FilterModel>(instanceName: 'filterInstance');
-
   final List<String> _genderOptions = ['todos', 'male', 'female'];
   String _selectedGender = 'todos';
-
 
   @override
   void initState() {
@@ -48,10 +48,14 @@ class _ShowDataPageState extends State<ShowDataPage> {
     final dbHelper = DatabaseHelper.instance;
     await dbHelper.createUser(user);
 
-   setState(() {
+    setState(() {
       _filteredUsers.removeWhere((u) => u.id == user.id); // Remover usuário da lista de filtrados
       _savedUsers.add(user); // Adicionar usuário à lista de salvos
+      _userSaved = true; // Marcando que o usuário foi salvo
     });
+
+    widget.onUserSaved();
+    widget.onUserSavedStatusChanged(_userSaved); // Notificando a página pai
   }
 
   @override
@@ -120,7 +124,12 @@ class _ShowDataPageState extends State<ShowDataPage> {
                                 backgroundImage: NetworkImage(user.avatarUrl),
                                 radius: 25,
                               ),
-                              title: Text(user.name),
+                              title: Text(
+                                user.name,
+                                style: TextStyle( 
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               subtitle: Text('${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.save, color: Colors.green),

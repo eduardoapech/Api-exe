@@ -14,6 +14,9 @@ abstract class _HomeScreenState with Store {
   @observable
   bool _showClearIconForMaxAge = false;
 
+  @observable
+  int _notificationCount = 0;
+  
 
   @computed
   bool get showClearIconForFilter => _showClearIconForFilter;
@@ -24,18 +27,31 @@ abstract class _HomeScreenState with Store {
   @computed
   bool get showClearIconForMaxAge => _showClearIconForMaxAge;
 
+  @computed
+  int get notificationCount => _notificationCount;
+
   @action
-  void setFilterText() {
-    _showClearIconForFilter = !_showClearIconForFilter;
+  void setFilterText(bool value) {
+    _showClearIconForFilter = value;
   }
 
   @action
-  void setMinAgeText() {
-    _showClearIconForMinAge = !_showClearIconForMinAge;
+  void setMinAgeText(bool value) {
+    _showClearIconForMinAge = value;
   }
 
   @action
-  void setMaxAgeText() {
-    _showClearIconForMaxAge = !_showClearIconForMaxAge;
+  void setMaxAgeText(bool value) {
+    _showClearIconForMaxAge = value;
+  }
+
+  @action
+  void incrementNotificationCount() {
+    _notificationCount++;
+  }
+
+  @action
+  void resetNotificationCount() {
+    _notificationCount = 0;
   }
 }
