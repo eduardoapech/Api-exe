@@ -226,124 +226,128 @@ class _SavedDataPageState extends State<SavedDataPage> {
             );
           }),
         ),
-        const SizedBox(height: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DropdownButtonFormField<String>(
-              value: _selectedGender,
-              items: _genderOptions.map((gender) {
-                return DropdownMenuItem<String>(
-                  value: gender,
-                  child: Text(gender == 'todos' ? 'Todos' : gender),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedGender = value!;
-                  _startDebounceTimer(() {
-                    _loadSavedUsers();
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<String>(
+                value: _selectedGender,
+                items: _genderOptions.map((gender) {
+                  return DropdownMenuItem<String>(
+                    value: gender,
+                    child: Text(gender == 'todos' ? 'Todos' : gender),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedGender = value!;
+                    _startDebounceTimer(() {
+                      _loadSavedUsers();
+                    });
                   });
-                });
-              },
-              decoration: const InputDecoration(
-                labelText: 'Gênero',
-                labelStyle: TextStyle(color: Colors.black, fontSize: 16),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black, width: 2),
+                },
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red, width: 2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green, width: 2),
+                  ),
+                  labelText: 'Gênero',
+                  labelStyle: TextStyle(color: Colors.black, fontSize: 16),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green, width: 2),
-                ),
+                style: TextStyle(color: Colors.black, fontSize: 16),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround, // Alinhar os campos
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Observer(builder: (_) {
-                        return TextField(
-                          controller: _minAgeController,
-                          onChanged: (text) {
-                            _startDebounceTimer(() {
-                              _handleFilterChange(text);
-                              _homeScreenState.setMinAgeText(text.isNotEmpty);
-                            });
-                          },
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Idade mín.',
-                            labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black, width: 2),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround, // Alinhar os campos
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Observer(builder: (_) {
+                          return TextField(
+                            controller: _minAgeController,
+                            onChanged: (text) {
+                              _startDebounceTimer(() {
+                                _handleFilterChange(text);
+                                _homeScreenState.setMinAgeText(text.isNotEmpty);
+                              });
+                            },
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Idade mín.',
+                              labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black, width: 2),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red, width: 2),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.green, width: 2),
+                              ),
+                              suffixIcon: _homeScreenState.showClearIconForMinAge
+                                  ? IconButton(
+                                      onPressed: _clearFilter,
+                                      icon: const Icon(Icons.clear),
+                                    )
+                                  : null,
                             ),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.red, width: 2),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green, width: 2),
-                            ),
-                            suffixIcon: _homeScreenState.showClearIconForMinAge
-                                ? IconButton(
-                                    onPressed: _clearFilter,
-                                    icon: const Icon(Icons.clear),
-                                  )
-                                : null,
-                          ),
-                        );
-                      }),
-                    ],
+                          );
+                        }),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Observer(builder: (_) {
-                        return TextField(
-                          controller: _maxAgeController,
-                          onChanged: (text) {
-                            _startDebounceTimer(() {
-                              _handleFilterChange(text);
-                              _homeScreenState.setMaxAgeText(text.isNotEmpty);
-                            });
-                          },
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Idade máx.',
-                            labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black, width: 2),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Observer(builder: (_) {
+                          return TextField(
+                            controller: _maxAgeController,
+                            onChanged: (text) {
+                              _startDebounceTimer(() {
+                                _handleFilterChange(text);
+                                _homeScreenState.setMaxAgeText(text.isNotEmpty);
+                              });
+                            },
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Idade máx.',
+                              labelStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black, width: 2),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red, width: 2),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.green, width: 2),
+                              ),
+                              suffixIcon: _homeScreenState.showClearIconForMaxAge
+                                  ? IconButton(
+                                      onPressed: _clearFilter,
+                                      icon: const Icon(Icons.clear),
+                                    )
+                                  : null,
                             ),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.red, width: 2),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green, width: 2),
-                            ),
-                            suffixIcon: _homeScreenState.showClearIconForMaxAge
-                                ? IconButton(
-                                    onPressed: _clearFilter,
-                                    icon: const Icon(Icons.clear),
-                                  )
-                                : null,
-                          ),
-                        );
-                      }),
-                    ],
+                          );
+                        }),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Expanded(
@@ -416,7 +420,7 @@ class _SavedDataPageState extends State<SavedDataPage> {
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('${user.gender}, ${user.email}, ${user.city}, ${user.state}, Age: ${user.age}'),
+                                        Text(', ${user.email}, ${user.city}, ${user.state}, ${user.gender}, Age: ${user.age}'),
                                       ],
                                     ),
                                     onTap: () async {

@@ -93,6 +93,7 @@ class _ShowDataPageState extends State<ShowDataPage> {
                 borderSide: BorderSide(color: Colors.green, width: 2.0),
               ),
             ),
+            style: TextStyle(fontSize: 16, color: Colors.black,),
           ),
         ),
         Expanded(
